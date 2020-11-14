@@ -3,10 +3,11 @@
 namespace TgDatabase;
 
 /**
-  * A general class for transforming table rows into data objects.
-  * This class assumes a numerical, auto-incremental primary key!
+  * A general DAO for accessing and manipulating table rows as objects.
+  * <p>Essentially turning the relational database model into an object-relational model for PHP.</p>
+  * <p>This class assumes a numerical, auto-incremental primary key!</p>
   */
-class DataModel {
+class DAO {
 
 	/** The database object */
 	protected $database;
@@ -20,27 +21,51 @@ class DataModel {
 	/** The ID column */
 	protected $idColumn;
 
-	public function __construct($database, $tableName, $modelClass, $idColumn = 'uid') {
+	/**
+	 * Constructor.
+	 * @param Database $database - the database object
+	 * @param string $tableName  - the table name this object will handle (can include #__ as prefix)
+	 * @param string $modelClass - the name of the class that rows will be converted to (optional, default is \stdClass).
+	 * @param string $idColumn   - the name of the integer, auto-incremental primary key column (optional, default is uid)
+	 */
+	public function __construct($database, $tableName, $modelClass = 'stdClass', $idColumn = 'uid') {
 		$this->database   = $database;
 		$this->tableName  = $tableName;
 		$this->modelClass = class_exists($modelClass) ? $modelClass : 'stdClass';
 		$this->idColumn   = $idColumn;
 	}
 
-	/** Get the object with given UID */
+	/** 
+	 * Get the object with given id.
+	 * @param int $uid - ID of object (row)
+	 * @return object the object fetched (can be NULL)
+	 */
 	public function get($uid) {
 		return $this->database->querySingle('SELECT * FROM '.$this->database->quoteName($this->tableName).' WHERE '.$this->createCriterion($this->idColumn, $uid), $this->modelClass);
 	}
 
-	/** Find multiple objects by UID only - works on numeric IDs currently */
+	/** 
+	 * Find multiple objects by ID.
+	 * <p>Returns all objects that appear in list of IDs.</p>
+	 * @param array $uids - list of int IDs to find
+	 * @param array $order - list of order columns (see README.md)
+	 * @return array all objects (rows) found 
+	 */
 	public function findByUid($uids, $order = array()) {
 		if (($uids == null) || !is_array($uids) || (count($uids) == 0)) return array();
 		$where = $this->createCriterion($this->idColumn, $uids, 'IN');
 		return $this->find($where, $order);
 	}
 
-	/** Find objects with given criteria and in given order */
-	public function find($criteria = array(), $order = array(), $startIndex = -1, $maxObjects = 0) {
+	/** 
+	 * Find objects with given criteria and in given order.
+	 * @param array $criteria - the criterions to search for (AND) - see README.md (optional, default is empty array)
+	 * @param array $order - list of order columns - see README.md (optional, default is empty array)
+	 * @param int $startIndex - index of first object in order to return (optional, default is 0)
+	 * @param int $maxObjects - number of objects to return at max (optional, default is 0 = all objects)
+	 * @return array list of objects found matching the criteria
+	 */
+	public function find($criteria = array(), $order = array(), $startIndex = 0, $maxObjects = 0) {
 		$whereClause = $this->createWhereClause($criteria);
 		$orderClause = $this->createOrderClause($order);
 		$limit       = '';
@@ -54,7 +79,10 @@ class DataModel {
 		return $this->database->queryList('SELECT * FROM '.$this->database->quoteName($this->tableName).' '.$whereClause.' '.$orderClause.$limit, $this->modelClass);
 	}
 
-	/** Count objects with given criteria */
+	/** Count objects with given criteria.
+	 * @param array $criteria - the criterions to search for (AND) - see README.md (optional, default is empty array)
+	 * @return int the number of objects matching the criteria.
+	 */
 	public function count($criteria = array()) {
 		$whereClause = $this->createWhereClause($criteria);
 		$record = $this->database->querySingle('SELECT COUNT(*) AS cnt FROM '.$this->database->quoteName($this->tableName).' '.$whereClause);
@@ -64,14 +92,23 @@ class DataModel {
 		return 0;
 	}
 
-	/** Find objects with given criteria and in given order */
+	/** 
+	 * Find first object with given criteria.
+	 * @param array $criteria - the criterions to search for (AND) - see README.md (optional, default is empty array)
+	 * @param array $order - list of order columns - see README.md (optional, default is empty array)
+	 * @return object the first object found or NULL
+	 */
 	public function findSingle($criteria = array(), $order = array()) {
 		$result = $this->find($criteria, $order, -1, 1);
 		if (is_array($result) && (count($result)>0)) return $result[0];
 		return NULL;
 	}
 
-	/** Create the given object */
+	/** 
+	 * Create the given object in the database.
+	 * @param object $object - object to be created
+	 * @return int ID of new object
+	 */
 	public function create($object) {
 		$k   = $this->idColumn;
 		$uid = $this->database->insert($this->database->quoteName($this->tableName), $this->preSave($object, true));
@@ -79,7 +116,11 @@ class DataModel {
 		return $uid;
 	}
 
-	/** Save the given object(s) */
+	/** 
+	 * Save the given object(s).
+	 * @param mixed $object - array of objects or single object to be updated
+	 * @return mixed - FALSE when save was incomplete (multiple objects) or failed, the updated object (single) or TRUE (multiple)
+	 */
 	public function save($object) {
 		if (is_array($object)) {
 			foreach ($object AS $o) {
@@ -105,10 +146,14 @@ class DataModel {
 		return FALSE;
 	}
 
-	/** Models can override this function to eventually pre-process the objects value, e.g. normalizing or remove values.
-	  * You always need to call parent::preSave($object, $isCreate).
-	  * @return object the object the actual object to be persisted
-	  */
+	/** 
+	 * Models can override this function to eventually pre-process the objects' values, e.g. normalizing or remove values.
+	 * <p>You always need to call parent::preSave($object, $isCreate).</p>
+	 * <p>The default behaviour is to stripe off fields starting with an underscore (_).</p>
+	 * @param object $object - the object to be persisted
+	 * @param boolean $isCreate - TRUE when this is a new object to be created
+	 * @return object the actual object to be persisted
+	 */
 	protected function preSave($object, $isCreate) {
 		$rc = new \stdClass;
 		foreach (get_object_vars($object) AS $field => $value) {
@@ -119,7 +164,11 @@ class DataModel {
 		return $rc;
 	}
 
-	/** Delete the given object(s) */
+	/** 
+	 * Delete the given object(s).
+	 * @param mixed $object - array of objects or single object to be deleted
+	 * @return mixed - FALSE when delete was incomplete or failed, or TRUE
+	 */
 	public function delete($object) {
 		if (is_array($object)) {
 			foreach ($object AS $o) {
@@ -143,13 +192,22 @@ class DataModel {
 		return FALSE;
 	}
 
-	/** Get the full SQL query to delete the given uid.
-	  * Override this to implement soft deletes.
-	  */
+	/** 
+	 * Get the full SQL query to delete the given uid.
+	 * <p>Override this to implement soft delete functionality.</p>
+	 * @param int uid - ID of object to be deleted
+	 * @return string the correct DELETE statement to delete this object or mark it as deleted.
+	 */
 	protected function getDeleteQuery($uid) {
 		return 'DELETE FROM '.$this->database->quoteName($this->tableName).' WHERE '.$this->createCriterion($this->idColumn, $uid);
 	}
 
+	/**
+	 * Creates a WHERE clause.
+	 * @param mixed $criteria - string or array of field clauses - see README.md (optional)
+	 * @param string $combine - the logical operator to combine the criteria (optional, default is AND)
+	 * @return string a WHERE clause to be used
+	 */
 	protected function createWhereClause($criteria = NULL, $combine = 'AND') {
 		$whereClause = '';
 		if ($criteria != NULL) {
@@ -175,6 +233,14 @@ class DataModel {
 		return $whereClause;
 	}
 
+	/**
+	 * Creates a single criterion from a field name, a value and an operator.
+	 * <p>Values will be quoted and escaped if required</p>
+	 * @param string $field - the field name
+	 * @param mixed $value - the field value to check for (can be NULL, an array or a specific value - optional, default is NULL)
+	 * @param string $operator - criterion operator: one of =, !=, <=, >=, IN, NOT IN (optional, default is '=')
+	 * @return string the single criterion that can be used in a WHERE clause
+	 */
 	protected function createCriterion($field, $value = NULL, $operator = NULL) {
 		if (is_array($field)) {
 			$value = $field[1];
@@ -198,6 +264,11 @@ class DataModel {
 		return '('.$rc.')';
 	}
 
+	/**
+	 * Creates the order clause.
+	 * @param mixed $orders - string or array of order clauses (fieldname ASC/DESC) (optional, default is NULL)
+	 * @return string correct ORDER clause
+	 */
 	protected function createOrderClause($orders = NULL) {
 		$rc = '';
 		if ($orders != NULL) {
