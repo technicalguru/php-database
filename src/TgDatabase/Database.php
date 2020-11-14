@@ -219,14 +219,14 @@ class Database {
 			else $value = $this->prepareValue($v);
 			$values[] = '`'.$k.'`='.$value;
 		}
-		if (($where != NULL) && !trim($where)) $where = ' WHERE '.$where;
+		if (($where != NULL) && (trim($where) != '')) $where = ' WHERE '.$where;
 		$sql = 'UPDATE '.$table.' SET '.implode(', ', $values).$where;
 		Log::debug($sql);
 		$rc = $this->query($sql);
 		if ($rc === FALSE) {
 			$this->logError($sql);
 		} else {
-			$rc = $this->queryList('SELECT * FROM '.$table.' WHERE '.$where);
+			$rc = $this->queryList('SELECT * FROM '.$table.$where);
 		}
 		return $rc;
 	}
