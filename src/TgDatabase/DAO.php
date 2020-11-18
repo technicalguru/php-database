@@ -192,6 +192,18 @@ class DAO {
 		return FALSE;
 	}
 
+
+	/** 
+	 * Delete the objects using the given criteria.
+	 * @param array $criteria - the criterions to match for delete for (AND) - see README.md (optional, default will clear table)
+	 * @return mixed - FALSE when delete failed, TRUE when successful
+	 */
+	public function deleteBy($criteria = array()) {
+	    $whereClause = $this->createWhereClause($criteria);
+	    $query = 'DELETE FROM '.$this->database->quoteName($this->tableName).' '.$whereClause;
+	    return $this->database->query($query);
+	}
+	
 	/** 
 	 * Get the full SQL query to delete the given uid.
 	 * <p>Override this to implement soft delete functionality.</p>
