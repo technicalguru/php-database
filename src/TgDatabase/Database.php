@@ -291,7 +291,7 @@ class Database {
 	 * @param string $s - the table name
 	 * @param string the table name with prefix replaced
 	 */
-	protected function replaceTablePrefix($s) {
+	public function replaceTablePrefix($s) {
 		$prefix = $this->config['tablePrefix'];
 		if (!$prefix) $prefix = '';
 		return str_replace('#__', $prefix, $s);
