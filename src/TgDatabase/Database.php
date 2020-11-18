@@ -10,17 +10,17 @@ use TgLog\Log;
 class Database {
 
     /** The database config */
-	protected $dbconfig;
+	protected $config;
 	/** The database connection */
 	public    $con;
 
 	/**
 	 * Constructor.
-	 * @param array $dbconfig - configuration array (see README.md)
+	 * @param array $config - configuration array (see README.md)
 	 * @param \TgUtils\Auth\CredentialsProvider $provider - provider for credentials from an external source (optional)
 	 */
-	public function __construct($dbconfig, \TgUtils\Auth\CredentialsProvider $provider = NULL) {
-		$this->dbconfig = $dbconfig;
+	public function __construct($config, \TgUtils\Auth\CredentialsProvider $provider = NULL) {
+		$this->config = $config;
 		$this->connect($provider);
 	}
 
@@ -36,15 +36,15 @@ class Database {
 				$username = $provider->getUsername();
 				$password = $provider->getPassword();
 			} else {
-				$username = $this->dbconfig['user'];
-				$password = $this->dbconfig['pass'];
+				$username = $this->config['user'];
+				$password = $this->config['pass'];
 			}
 			$this->con = new \mysqli(
-				$this->dbconfig['host'],
+				$this->config['host'],
 				$username,
 				$password,
-				$this->dbconfig['dbname'],
-				$this->dbconfig['port']
+				$this->config['dbname'],
+				$this->config['port']
 			);
 			if ($this->con->connect_errno) {
 				error_log('Failed to connect to MySQL: '.$this->con->connect_errno);
@@ -291,8 +291,8 @@ class Database {
 	 * @param string $s - the table name
 	 * @param string the table name with prefix replaced
 	 */
-	protected function replaceTablePrefix($s) {
-		$prefix = $this->dbconfig['tablePrefix'];
+	public function replaceTablePrefix($s) {
+		$prefix = $this->config['tablePrefix'];
 		if (!$prefix) $prefix = '';
 		return str_replace('#__', $prefix, $s);
 	}
