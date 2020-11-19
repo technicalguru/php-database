@@ -166,7 +166,7 @@ class DAO {
 
 	/** 
 	 * Delete the given object(s).
-	 * @param mixed $object - array of objects or single object to be deleted
+	 * @param mixed $object - array of objects, single object or array of IDs or single ID of objects to be deleted
 	 * @return mixed - FALSE when delete was incomplete or failed, or TRUE
 	 */
 	public function delete($object) {
