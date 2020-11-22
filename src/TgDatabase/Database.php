@@ -175,6 +175,14 @@ class Database {
 	}
 
 	/**
+	 * Return TRUE when the database had a problem with the last task.
+	 * @return boolean - TRUE when connection failed or last SQL command failed.
+	 */
+	public function hasError() {
+	    return $this->con->connect_errno || $this->con->errno;
+	}
+	
+	/**
 	 * Inserts a new row into a table.
 	 * <p>All fields (for objects) or keys (for arrays) are used as column names.</p>
 	 * @param string $table - the table name (table prefix will be replaced)
