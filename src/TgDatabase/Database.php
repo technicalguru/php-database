@@ -48,8 +48,9 @@ class Database {
 			);
 			if ($this->con->connect_errno) {
 				error_log('Failed to connect to MySQL: '.$this->con->connect_errno);
+			} else {
+		        $this->configureConnection();
 			}
-			$this->configureConnection();
 		}
 	}
 
