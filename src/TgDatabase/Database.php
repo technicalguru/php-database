@@ -171,6 +171,9 @@ class Database {
 	 * @return string error text
 	 */
 	public function error() {
+	    if ($this->con->connect_error) {
+	        return $this->con->connect_error;
+	    }
 		return $this->con->error;
 	}
 
