@@ -200,8 +200,7 @@ class DAO {
 	 */
 	public function deleteBy($criteria = array()) {
 	    $whereClause = $this->createWhereClause($criteria);
-	    $query = 'DELETE FROM '.$this->database->quoteName($this->tableName).' '.$whereClause;
-	    return $this->database->query($query);
+	    return $this->database->delete($this->tableName, substr($whereClause, 6));
 	}
 	
 	/** 
