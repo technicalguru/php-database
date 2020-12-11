@@ -48,8 +48,9 @@ class Database {
 			);
 			if ($this->con->connect_errno) {
 				error_log('Failed to connect to MySQL: '.$this->con->connect_errno);
+			} else {
+		        $this->configureConnection();
 			}
-			$this->configureConnection();
 		}
 	}
 
@@ -170,9 +171,20 @@ class Database {
 	 * @return string error text
 	 */
 	public function error() {
+	    if ($this->con->connect_error) {
+	        return $this->con->connect_error;
+	    }
 		return $this->con->error;
 	}
 
+	/**
+	 * Return TRUE when the database had a problem with the last task.
+	 * @return boolean - TRUE when connection failed or last SQL command failed.
+	 */
+	public function hasError() {
+	    return $this->con->connect_errno || $this->con->errno;
+	}
+	
 	/**
 	 * Inserts a new row into a table.
 	 * <p>All fields (for objects) or keys (for arrays) are used as column names.</p>
