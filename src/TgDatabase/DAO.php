@@ -43,6 +43,22 @@ class DAO {
 		return $this->database->tableExists($this->tableName);
 	}
 
+	/**
+	 * Describes the underlying table.
+	 * {
+     *   "Field":   "uid",
+     *   "Type":    "int(10) unsigned",
+     *   "Null":    "NO",
+     *   "Key":     "PRI",
+     *   "Default": null,
+     *   "Extra":   "auto_increment"
+     * }
+	 * @return array of columns (empty when error occured).
+	 */
+	public function describeTable() {
+		return $this->database->describeTable($this->tableName);
+	}
+
 	/** 
 	 * Get the object with given id.
 	 * @param int $uid - ID of object (row)
