@@ -95,6 +95,18 @@ class Database {
 	}
 
 	/**
+	 * Checks existance of a table.
+	 * @param string $tableName - name of table to be checked
+	 * @return string TRUE when table exists, FALSE otherwise.
+	 */
+	public function tableExists($tableName) {
+		$res = $this->query('SELECT * FROM '.$this->tableName);
+		$rc  = $res !== FALSE;
+		if ($res) $res->free();
+		return $rc;
+	}
+
+	/**
 	 * Execute the given SQL.
 	 * <p>This can be any arbitrary SQL statement. The function will only replace the table prefix
 	 *    which can appear as placeholder #__.</p>

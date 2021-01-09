@@ -35,6 +35,14 @@ class DAO {
 		$this->idColumn   = $idColumn;
 	}
 
+	/**
+	 * Checks existance of the underlying table.
+	 * @return string TRUE when table exists, FALSE otherwise.
+	 */
+	public function tableExists() {
+		return $this->database->tableExists($this->tableName);
+	}
+
 	/** 
 	 * Get the object with given id.
 	 * @param int $uid - ID of object (row)
