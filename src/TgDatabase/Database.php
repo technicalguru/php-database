@@ -95,6 +95,39 @@ class Database {
 	}
 
 	/**
+	 * Checks existance of a table.
+	 * @param string $tableName - name of table to be checked
+	 * @return string TRUE when table exists, FALSE otherwise.
+	 */
+	public function tableExists($tableName) {
+		$res = $this->query('SELECT * FROM '.$tableName);
+		$rc  = $res !== FALSE;
+		if ($res) $res->free();
+		return $rc;
+	}
+
+	/**
+	 * Describes a table.
+	 * {
+     *   "Field":   "uid",
+     *   "Type":    "int(10) unsigned",
+     *   "Null":    "NO",
+     *   "Key":     "PRI",
+     *   "Default": null,
+     *   "Extra":   "auto_increment"
+     * }
+	 * @param string $tableName - name of table to be described
+	 * @return array of columns (empty when error occured).
+	 */
+	public function describeTable($tableName) {
+		$rc = array();
+		foreach ($this->queryList('DESCRIBE '.$tableName) AS $field) {
+			$rc[$field->Field] = $field;
+		}
+		return $rc;
+	}
+
+	/**
 	 * Execute the given SQL.
 	 * <p>This can be any arbitrary SQL statement. The function will only replace the table prefix
 	 *    which can appear as placeholder #__.</p>
