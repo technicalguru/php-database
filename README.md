@@ -270,7 +270,7 @@ As above mentioned, you can use your own data classes. There are actually no
 restrictions other than the class needs a no-argument constructor. The main
 advantage is that this class can have additional methods that have some
 logic. You can even define additional attributes that will not be saved in
-the database by a DAO. These attributes start with an underscore (_).
+the database by a DAO. These attributes start with an underscore.
 
 Here is an example:
 
