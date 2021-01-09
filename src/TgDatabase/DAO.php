@@ -24,15 +24,36 @@ class DAO {
 	/**
 	 * Constructor.
 	 * @param Database $database - the database object
-	 * @param string $tableName  - the table name this object will handle (can include #__ as prefix)
-	 * @param string $modelClass - the name of the class that rows will be converted to (optional, default is \stdClass).
-	 * @param string $idColumn   - the name of the integer, auto-incremental primary key column (optional, default is uid)
+	 * @param string  $tableName  - the table name this object will handle (can include #__ as prefix)
+	 * @param string  $modelClass - the name of the class that rows will be converted to (optional, default is \stdClass).
+	 * @param string  $idColumn   - the name of the integer, auto-incremental primary key column (optional, default is uid)
+	 * @param boolean $checkTable - whether to check existance of table and create if required (optional, default is FALSE)
 	 */
-	public function __construct($database, $tableName, $modelClass = 'stdClass', $idColumn = 'uid') {
+	public function __construct($database, $tableName, $modelClass = 'stdClass', $idColumn = 'uid', $checkTable = FALSE) {
 		$this->database   = $database;
 		$this->tableName  = $tableName;
 		$this->modelClass = class_exists($modelClass) ? $modelClass : 'stdClass';
 		$this->idColumn   = $idColumn;
+		if ($checkTable) $this->checkTable();
+	}
+
+	/**
+	 * Checks the underlying table for existance and calls #createTable() if it does not exist.
+	 * @return boolean TRUE when table exists or was created successfully.
+	 */
+	public function checkTable() {
+		if (!$this->tableExists()) {
+			return $this->createTable();
+		}
+		return TRUE;
+	}
+
+	/**
+	 * Creates the table. Default implementation does nothing and returns FALSE.
+	 * @return TRUE when table was created successfully.
+	 */
+	public function createTable() {
+		return FALSE;
 	}
 
 	/**

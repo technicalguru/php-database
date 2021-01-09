@@ -57,5 +57,27 @@ class DataModel {
     public function register($name, $dao) {
         $this->models[$name] = $dao;
     }
+
+	/**
+	 * Performs a check of each DAO whether underlying tables exists and creates them if required.
+	 * @return object with the result(s):
+	 * {
+	 *   "tableChecks" : {
+	 *      "<dao-registered-name>" : TRUE|FALSE,
+	 *      ...
+	 *   },
+	 *   "success" : TRUE|FALSE
+	 * }
+	 */
+	public function checkTables() {
+		$rc = new \stdClass;
+		$rc->tableChecks = new \stdClass;
+		$rc->success     = TRUE;
+		foreach ($this->models AS $name => $dao) {
+			$rc->tableChecks->$name = $dao->checkTable();
+			if (!$rc->tableChecks->$name) $rc->success = FALSE;
+		}
+		return $rc;
+	}
 }
 
