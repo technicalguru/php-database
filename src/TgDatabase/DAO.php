@@ -247,7 +247,15 @@ class DAO {
 	    $whereClause = $this->createWhereClause($criteria);
 	    return $this->database->delete($this->tableName, substr($whereClause, 6));
 	}
-	
+
+	/**
+	 * Returns the next auto increment value for this class. (Use with care!)
+	 * @return int - next auto increment value as UID.
+	 */	
+	public function getNextUid() {
+		return $this->database->getNextUid($this->tableName);
+	}
+
 	/** 
 	 * Get the full SQL query to delete the given uid.
 	 * <p>Override this to implement soft delete functionality.</p>
