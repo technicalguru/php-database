@@ -331,6 +331,17 @@ class Database {
 		return $rc;
 	}
 
+	/**
+	 * Returns the next auto increment value for this class. (Use with care!)
+	 * @return int - next auto increment value as UID.
+	 */	
+	public function getNextUid($tableName) {
+		$sql = 'SELECT `auto_increment` FROM INFORMATION_SCHEMA.TABLES WHERE table_name='.$this->quote($this->replaceTablePrefix($tableName)); 
+		$record = $this->querySingle($sql);
+		if (is_object($record)) return $record->auto_increment;
+		return 0;
+	}
+
 	/** 
 	 * Replaces the #__ in a table name with the tablePrefix (if configured).
 	 * @param string $s - the table name
