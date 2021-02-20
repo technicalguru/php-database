@@ -304,7 +304,7 @@ class Database {
 		$rc = $value;
 		if (is_object($value)) {
 			if (get_class($value) == 'TgUtils\\Date') $rc = $this->quote($value->toMysql(true));
-			else if (is_a('TgUtils\\SelfJsonEncoder')) $rc = $this->quote($value->json_encode());
+			else if (is_a($value, 'TgUtils\\SelfJsonEncoder')) $rc = $this->quote($value->json_encode());
 			else $rc = $this->quote(json_encode($value));
 		} else if (is_array($value)) {
 			$rc = $this->quote(json_encode($value));
