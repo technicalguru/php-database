@@ -149,6 +149,15 @@ class DAO {
 		return NULL;
 	}
 
+	/**
+	 * Creates a new instance of the model class.
+	 * @return instance
+	 */
+	public function newInstance() {
+		$name = $this->modelClass;
+		return new $name();
+	}
+
 	/** 
 	 * Create the given object in the database.
 	 * @param object $object - object to be created
