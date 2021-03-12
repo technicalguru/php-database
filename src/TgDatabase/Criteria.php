@@ -38,6 +38,16 @@ interface Criteria {
 	public function setMaxResults(int $maxResults);
 
 	/**
+	  * Create a new join criteria.
+	  */
+	public function createCriteria($tableName, $alias, $joinCriterion);
+
+	/**
+	  * Add a new join criteria.
+	  */
+	public function addCriteria(Criteria $criteria, $joinCriterion);
+
+	/**
 	  * Queries the database.
 	  */
 	public function list();

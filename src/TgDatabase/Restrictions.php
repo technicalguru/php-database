@@ -9,6 +9,7 @@ use TgDatabase\Criterion\NullExpression;
 use TgDatabase\Criterion\NotNullExpression;
 use TgDatabase\Criterion\InExpression;
 use TgDatabase\Criterion\NotInExpression;
+use TgDatabase\Criterion\PropertyExpression;
 
 /**
   * Provides the built-in citerions.

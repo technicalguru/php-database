@@ -13,9 +13,10 @@ class CriteriaImpl implements Criteria {
 	public function __construct($database, $tableName, $resultClassName = NULL, $alias = NULL) {
 		$this->database        = $database;
 		$this->tableName       = $tableName;
-		$this->resultClassName = $resultClassName != NULL ? $resultClassName : 'stdClass';
+		$this->resultClassName = $resultClassName;
 		$this->alias           = $alias;
 		$this->projection      = NULL;
+		$this->subcriteria     = array();
 		$this->criterions      = array();
 		$this->orders          = array();
 		$this->firstResult     = -1;
@@ -44,7 +45,7 @@ class CriteriaImpl implements Criteria {
 	  */
 	public function setProjection(Projection $projection) {
 		$this->projection      = $projection;
-		$this->resultClassName = 'stdClass';
+		$this->resultClassName = NULL;
 		return $this;
 	}
 
@@ -74,6 +75,23 @@ class CriteriaImpl implements Criteria {
 	}
 
 	/**
+	  * Create a new join criteria.
+	  */
+	public function createCriteria($tableName, $alias, $joinCriterion) {
+		$rc = new CriteriaImpl($this->database, $tableName, NULL, $alias);
+		$this->addCriteria($rc, $joinCriterion);
+		return $rc;
+	}
+
+	/**
+	  * Add a new join criteria.
+	  */
+	public function addCriteria(Criteria $criteria, $joinCriterion) {
+		$this->subcriteria[] = array($criteria, $joinCriterion);
+		return $this;
+	}
+
+	/**
 	  * Queries the database.
 	  */
 	public function list() {
@@ -83,10 +101,10 @@ class CriteriaImpl implements Criteria {
 
 	public function toSqlString() {
 		// SELECT projections
-		$rc .= $this->getSelectClause();
+		$rc .= 'SELECT '.$this->getSelectClause();
 
 		// FROM table
-		$rc .= ' '.$this->getFromClause();
+		$rc .= ' FROM '.$this->getFromClause();
 
 		// JOIN not implemented yet
 		$rc .= ' '.$this->getJoinClause();
@@ -95,21 +113,32 @@ class CriteriaImpl implements Criteria {
 		$rc .= ' '.$this->getGroupByClause();
 
 		// WHERE clauses
-		$rc .= ' '.$this->getWhereClause();
+		$where = $this->getWhereClause();
+		if ($where != NULL) {
+			$rc .= ' WHERE '.$where;
+		}
 		
 		// ORDER BY clauses
-		$rc .= ' '.$this->getOrderByClause();
+		$orderBy = $this->getOrderByClause();
+		if ($orderBy != NULL) {
+			$rc .= ' ORDER BY '.$orderBy;
+		}
 
 		// LIMIT clause
-		$rc .= ' '.$this->getLimitClause();
+		$limit = $this->getLimitClause();
+		if ($limit != NULL) {
+			$rc .= ' LIMIT '.$limit;
+		}
 
 		return $rc;
 	}
 
 	protected function getSelectClause() {
-		$rc = 'SELECT ';
-		if ($this->projections != NULL) {
-			$rc .= $projection->toSqlString($this, $this);
+		$rc = '';
+		if ($this->projection != NULL) {
+			$rc .= $this->projection->toSqlString($this, $this);
+		} else if ($this->alias != NULL) {
+			$rc .= $this->quoteName($this->alias).'.*';
 		} else {
 			$rc .= '*';
 		}
@@ -117,13 +146,17 @@ class CriteriaImpl implements Criteria {
 	}
 
 	protected function getFromClause() {
-		$rc = 'FROM '.$this->quoteName($this->tableName);
+		$rc = $this->quoteName($this->tableName);
 		if ($this->alias != NULL) $rc .= ' AS '.$this->quoteName($this->alias);
 		return $rc;
 	}
 
 	protected function getJoinClause() {
-		return '';
+		$rc = '';
+		foreach ($this->subcriteria AS list($criteria, $joinCriterion)) {
+			$rc .= ' INNER JOIN '.$criteria->getFromClause().' ON '.$joinCriterion->toSqlString($this, $criteria);
+		}
+		return $rc;
 	}
 
 	protected function getGroupByClause() {
@@ -131,9 +164,9 @@ class CriteriaImpl implements Criteria {
 	}
 
 	protected function getWhereClause() {
-		$rc = '';
+		$rc = NULL;
 		if (count($this->criterions) > 0) {
-			$rc .= 'WHERE ';
+			$rc .= '';
 			$first = TRUE;
 			foreach ($this->criterions AS $criterion) {
 				if (!$first) $rc .= ' AND ';
@@ -145,13 +178,13 @@ class CriteriaImpl implements Criteria {
 	}
 
 	protected function getOrderByClause() {
-		$rc = '';
+		$rc = NULL;
 		if (count($this->orders) > 0) {
-			$rc .= 'ORDER BY ';
+			$rc .= '';
 			$first = TRUE;
 			foreach ($this->orders AS $order) {
 				if (!$first) $rc .= ',';
-				$rc .= '('.$order->toSqlString($this, $this).')';
+				$rc .= $order->toSqlString($this, $this);
 				$first = FALSE;
 			}
 		}
@@ -159,9 +192,9 @@ class CriteriaImpl implements Criteria {
 	}
 
 	protected function getLimitClause() {
-		$rc = '';
+		$rc = NULL;
 		if ($this->maxResults > 0) {
-			$rc = 'LIMIT '.$this->maxResults;
+			$rc = $this->maxResults;
 			if ($this->firstResult >= 0) {
 				$rc .= ' OFFSET '.$this->firstResult;
 			}
@@ -175,9 +208,13 @@ class CriteriaImpl implements Criteria {
 	}
 
 	public function quoteName($aliasOrIdentifier, $identifier = NULL) {
-		$rc = $this->database->quoteName($aliasOrIdentifier);
-		if ($identifier != NULL) $rc .= '.'.$this->database->quoteName($identifier);
-		return $rc;
+		if ($identifier != NULL) {
+			if (is_array($identifier)) {
+				return $this->database->quoteName($identifier[0]).'.'.$this->database->quoteName($identifier[1]);
+			}
+			return $this->database->quoteName($aliasOrIdentifier).'.'.$this->database->quoteName($identifier);
+		}
+		return $this->database->quoteName($aliasOrIdentifier);
 	}
 
 }

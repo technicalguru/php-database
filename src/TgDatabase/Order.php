@@ -27,13 +27,13 @@ class Order {
 	  * @param Criteria $overallCriteria - overall criteria object
 	  * @return string - the SQL fragment representing this criterion.
 	  */
-	public function toSqlString($localCritera, $overallCriteria) {
+	public function toSqlString($localCriteria, $overallCriteria) {
 		$lower = $this->ignoreCase;
 
 		if ($lower) {
 			$rc .= 'LOWER(';
 		}
-		$rc .= $overallCriteria->quoteName($this->propertyName);
+		$rc .= $overallCriteria->quoteName($localCriteria->getAlias(), $this->propertyName);
 		if ($lower) {
 			$rc .= ')';
 		}
@@ -52,4 +52,5 @@ class Order {
 		return new Order($propertyName, FALSE);
 	}
 
+}
 
