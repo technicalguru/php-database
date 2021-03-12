@@ -3,7 +3,6 @@
 namespace TgDatabase;
 
 use TgDatabase\Criterion\SimpleExpression;
-use TgDatabase\Criterion\LikeExpression;
 use TgDatabase\Criterion\LogicalExpression;
 use TgDatabase\Criterion\NullExpression;
 use TgDatabase\Criterion\NotNullExpression;

@@ -3,6 +3,7 @@
 namespace TgDatabase\Criterion;
 
 use TgDatabase\Projection;
+use TgDatabase\Criteria;
 
 class RowCountProjection implements Projection {
 

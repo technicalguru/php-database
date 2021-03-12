@@ -158,7 +158,7 @@ class DAO {
 
 	/**
 	 * Creates a new instance of the model class.
-	 * @return instance
+	 * @return object - instance
 	 */
 	public function newInstance() {
 		$name = $this->modelClass;

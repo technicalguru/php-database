@@ -2,6 +2,8 @@
 
 namespace TgDatabase\Criterion;
 
+use TgDatabase\Criteria;
+
 class CountProjection extends AggregateProjection {
 
 	public function __construct($propertyName, $distinct = FALSE) {
