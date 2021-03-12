@@ -96,6 +96,7 @@ class CriteriaImpl implements Criteria {
 	  */
 	public function list() {
 		$sql = $this->toSqlString();
+		\TgLog\Log::debug('criteriaQuery: '.$sql);
 		return $this->database->queryList($sql, $this->resultClassName);
 	}
 
