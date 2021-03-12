@@ -140,6 +140,15 @@ class Database {
 	}
 
 	/**
+	  * Creates a new criteria object for this database.
+	  * @param string $tableName  - the table to be queried
+	  * @param string $modelClass - the result class in the query.
+	  */
+	public function createCriteria($tableName, $modelClass = NULL, $alias = NULL) {
+		return new Impl\CriteriaImpl($this, $tableName, $modelClass, $alias);
+	}
+
+	/**
 	 * Internal function to log an error appearing with given SQL statement.
 	 * <p>Will log the error text (from connection object), the SQL statement and the stacktrace.</p>
 	 * @param string $sql - SQL statement that caused the problem.

@@ -80,6 +80,13 @@ class DAO {
 		return $this->database->describeTable($this->tableName);
 	}
 
+	/**
+	  * Creates a new criteria object for this DAO.
+	  */
+	public function createCriteria($alias = NULL) {
+		return $this->database->createCriteria($this->tableName, $this->modelClass, $alias);
+	}
+
 	/** 
 	 * Get the object with given id.
 	 * @param int $uid - ID of object (row)
