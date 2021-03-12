@@ -2,6 +2,7 @@
 
 namespace Tgdatabase\Criterion;
 
+use TgDatabase\Projection;
 
 class AggregateProjection implements Projection {
 

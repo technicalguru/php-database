@@ -167,12 +167,19 @@ class CriteriaImpl implements Criteria {
 	protected function getWhereClause() {
 		$rc = NULL;
 		if (count($this->criterions) > 0) {
-			$rc .= '';
-			$first = TRUE;
 			foreach ($this->criterions AS $criterion) {
-				if (!$first) $rc .= ' AND ';
+				if ($rc != NULL) $rc .= ' AND ';
+				else $rc = '';
 				$rc .= '('.$criterion->toSqlString($this, $this).')';
-				$first = FALSE;
+			}
+		}
+
+		// Add subcriteria where clauses
+		foreach ($this->subcriteria AS list($criteria, $joinCriterion)) {
+			foreach ($criteria->criterions AS $criterion) {
+				if ($rc != NULL) $rc .= ' AND ';
+				else $rc = '';
+				$rc .= '('.$criterion->toSqlString($criteria, $this).')';
 			}
 		}
 		return $rc;
@@ -181,7 +188,7 @@ class CriteriaImpl implements Criteria {
 	protected function getOrderByClause() {
 		$rc = NULL;
 		if (count($this->orders) > 0) {
-			$rc .= '';
+			$rc = '';
 			$first = TRUE;
 			foreach ($this->orders AS $order) {
 				if (!$first) $rc .= ',';

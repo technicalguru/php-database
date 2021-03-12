@@ -166,7 +166,9 @@ class Database {
 	 * @param string $class - the class name of the object to return.
 	 * @return mixed the fetched object or FALSE.
 	 */
-	public function querySingle($sql, $class = 'stdClass') {
+	public function querySingle($sql, $class = NULL) {
+		if ($class == NULL) $class = 'stdClass';
+
 		$sql = $this->replaceTablePrefix($sql);
 		$rc  = null;
 		$res = $this->query($sql);
@@ -185,7 +187,9 @@ class Database {
 	 * @param string $class - the class name of the objects to return.
 	 * @return mixed the array of fetched objects or FALSE.
 	 */
-	public function queryList($sql, $class = 'stdClass') {
+	public function queryList($sql, $class = NULL) {
+		if ($class == NULL) $class = 'stdClass';
+
 		$sql = $this->replaceTablePrefix($sql);
 		$rc  = array();
 		$res = $this->query($sql);

@@ -2,6 +2,7 @@
 
 namespace Tgdatabase\Criterion;
 
+use TgDatabase\Projection;
 
 class AliasedProjection implements Projection {
 
@@ -17,7 +18,7 @@ class AliasedProjection implements Projection {
 	  * @return string - the SQL fragment representing this criterion.
 	  */
 	public function toSqlString($localCriteria, $overallCriteria) {
-		return $this->projection->toSqlString($localCriteria, $overallCriteria).' AS '.$overallCriteria->quoteName($localCriteria->getAlias(), $this->alias);
+		return $this->projection->toSqlString($localCriteria, $overallCriteria).' AS '.$overallCriteria->quoteName($this->alias);
 	}
 }
 
