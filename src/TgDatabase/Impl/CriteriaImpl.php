@@ -228,8 +228,10 @@ class CriteriaImpl implements Criteria {
 		if ($identifier != NULL) {
 			if (is_array($identifier)) {
 				return $this->database->quoteName($identifier[0]).'.'.$this->database->quoteName($identifier[1]);
+			} else if ($aliasOrIdentifier != NULL) {
+			    return $this->database->quoteName($aliasOrIdentifier).'.'.$this->database->quoteName($identifier);
 			}
-			return $this->database->quoteName($aliasOrIdentifier).'.'.$this->database->quoteName($identifier);
+			return $this->database->quoteName($identifier);
 		}
 		return $this->database->quoteName($aliasOrIdentifier);
 	}
