@@ -92,12 +92,21 @@ class CriteriaImpl implements Criteria {
 	}
 
 	/**
-	  * Queries the database.
+	  * Queries the database and returns all defined rows.
 	  */
 	public function list() {
 		$sql = $this->toSqlString();
 		\TgLog\Log::debug('criteriaQuery: '.$sql);
 		return $this->database->queryList($sql, $this->resultClassName);
+	}
+
+	/**
+	  * Queries the database and returns only the first row.
+	  */
+	public function first() {
+		$sql = $this->toSqlString();
+		\TgLog\Log::debug('criteriaQuery: '.$sql);
+		return $this->database->querySingle($sql, $this->resultClassName);
 	}
 
 	public function toSqlString() {

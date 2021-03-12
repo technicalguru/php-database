@@ -51,4 +51,9 @@ interface Criteria {
 	  * Queries the database.
 	  */
 	public function list();
+
+	/**
+	  * Queries the database and returns all defined rows.
+	  */
+	public function first();
 }
