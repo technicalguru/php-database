@@ -9,20 +9,20 @@ use TgDatabase\Criteria;
 use TgDatabase\TestHelper;
 
 /**
- * Tests the InExpression.
+ * Tests the NotInExpression.
  * @author ralph
  *
  */
-final class InExpressionTest extends TestCase {
+final class NotInExpressionTest extends TestCase {
     
     public function testSimple(): void {
-        $expr = Restrictions::in('aName', array('aValue1', 'aValue2'));
-        $this->testSqlString('`aName` IN (\'aValue1\',\'aValue2\')', $expr);
+        $expr = Restrictions::notIn('aName', array('aValue1', 'aValue2'));
+        $this->testSqlString('`aName` NOT IN (\'aValue1\',\'aValue2\')', $expr);
     }
         
     public function testWithIgnoreCase(): void {
-        $expr = Restrictions::in('aName', array('aValue1', 'aValue2'))->ignoreCase();
-        $this->testSqlString('LOWER(`aName`) IN (\'avalue1\',\'avalue2\')', $expr);
+        $expr = Restrictions::notIn('aName', array('aValue1', 'aValue2'))->ignoreCase();
+        $this->testSqlString('LOWER(`aName`) NOT IN (\'avalue1\',\'avalue2\')', $expr);
     }
         
     protected function testSqlString(string $expected, Criterion $expr, $alias = NULL): void {
