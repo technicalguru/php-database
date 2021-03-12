@@ -26,6 +26,10 @@ class Projections {
 		return new CountProjection($propertyName, TRUE);
 	}
 
+	public static function avg($propertyName) {
+		return new AggregateProjection('AVG', $propertyName);
+	}
+
 	public static function max($propertyName) {
 		return new AggregateProjection('MAX', $propertyName);
 	}
