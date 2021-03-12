@@ -232,6 +232,8 @@ class CriteriaImpl implements Criteria {
 			    return $this->database->quoteName($aliasOrIdentifier).'.'.$this->database->quoteName($identifier);
 			}
 			return $this->database->quoteName($identifier);
+		} else if (is_array($aliasOrIdentifier)) {
+			return $this->database->quoteName($aliasOrIdentifier[0]).'.'.$this->database->quoteName($aliasOrIdentifier[1]);
 		}
 		return $this->database->quoteName($aliasOrIdentifier);
 	}
