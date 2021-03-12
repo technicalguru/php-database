@@ -1,6 +1,6 @@
 <?php
 
-namespace Tgdatabase\Criterion;
+namespace TgDatabase\Criterion;
 
 class CountProjection extends AggregateProjection {
 

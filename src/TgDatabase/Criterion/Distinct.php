@@ -4,11 +4,10 @@ namespace TgDatabase\Criterion;
 
 use TgDatabase\Projection;
 
-class AggregateProjection implements Projection {
+class Distinct implements Projection {
 
-	public function __construct($functionName, $propertyName) {
-		$this->functionName = $functionName;
-		$this->propertyName = $propertyName;
+	public function __construct($projection) {
+		$this->projection = $projection;
 	}
 
 	/**
@@ -18,7 +17,7 @@ class AggregateProjection implements Projection {
 	  * @return string - the SQL fragment representing this criterion.
 	  */
 	public function toSqlString($localCriteria, $overallCriteria) {
-		return $this->functionName.'('.$overallCriteria->quoteName($localCriteria->getAlias(), $this->propertyName).')';
+		return 'DISTINCT '.$this->projection->toSqlString($localCriteria, $overallCriteria);
 	}
 }
 

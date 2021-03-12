@@ -1,6 +1,6 @@
 <?php
 
-namespace Tgdatabase;
+namespace TgDatabase;
 
 use TgDatabase\Criterion\Distinct;
 use TgDatabase\Criterion\RowCountProjection;
