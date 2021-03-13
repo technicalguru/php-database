@@ -145,7 +145,7 @@ class Database {
 	  * @param string $modelClass - the result class in the query.
 	  */
 	public function createCriteria($tableName, $modelClass = NULL, $alias = NULL) {
-		return new Impl\CriteriaImpl($this, $tableName, $modelClass, $alias);
+		return new Criterion\CriteriaImpl($this, $tableName, $modelClass, $alias);
 	}
 
 	/**

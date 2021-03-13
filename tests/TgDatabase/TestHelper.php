@@ -3,7 +3,7 @@
 namespace TgDatabase;
 
 use TgDatabase\Criteria;
-use TgDatabase\Impl\CriteriaImpl;
+use TgDatabase\Criterion\CriteriaImpl;
 use TgDatabase\Database;
 
 /**

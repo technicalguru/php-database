@@ -1,6 +1,6 @@
 <?php
 
-namespace TgDatabase\Impl;
+namespace TgDatabase\Criterion;
 
 use TgDatabase\Criteria;
 use TgDatabase\Criterion;
