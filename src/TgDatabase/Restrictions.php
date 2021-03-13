@@ -27,7 +27,7 @@ class Restrictions {
 	  * the value is NULL apply a "is null" constraint.
 	  */
 	public static function eqOrNull($propertyName, $value) {
-		return $value == NULL ? isNull($propertyName) : new SimpleExpression($propertyName, $value, '=');
+		return $value == NULL ? self::isNull($propertyName) : new SimpleExpression($propertyName, $value, '=');
 	}
 
 	/**
@@ -42,7 +42,7 @@ class Restrictions {
 	  * the value is NULL apply a "is null" constraint.
 	  */
 	public static function neOrNull($propertyName, $value) {
-		return $value == NULL ? isNull($propertyName) : new SimpleExpression($propertyName, $value, '!=');
+		return $value == NULL ? self::isNull($propertyName) : new SimpleExpression($propertyName, $value, '!=');
 	}
 
 	/**
