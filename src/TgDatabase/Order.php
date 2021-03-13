@@ -30,6 +30,7 @@ class Order {
 	public function toSqlString($localCriteria, $overallCriteria) {
 		$lower = $this->ignoreCase;
 
+		$rc = '';
 		if ($lower) {
 			$rc .= 'LOWER(';
 		}

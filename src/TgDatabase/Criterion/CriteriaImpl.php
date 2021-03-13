@@ -111,17 +111,23 @@ class CriteriaImpl implements Criteria {
 
 	public function toSqlString() {
 		// SELECT projections
-		$rc .= 'SELECT '.$this->getSelectClause();
+		$rc = 'SELECT '.$this->getSelectClause();
 
 		// FROM table
 		$rc .= ' FROM '.$this->getFromClause();
 
 		// JOIN not implemented yet
-		$rc .= ' '.$this->getJoinClause();
-
+		$join = $this->getJoinClause();
+		if ($join != NULL) {
+		    $rc .= ' '.trim($join);
+		}
+		
 		// GROUP BY projection not implemented yet
-		$rc .= ' '.$this->getGroupByClause();
-
+		$group = $this->getGroupByClause();
+		if ($group != NULL) {
+		    $rc .= ' '.$group;
+		}
+		
 		// WHERE clauses
 		$where = $this->getWhereClause();
 		if ($where != NULL) {
@@ -162,15 +168,18 @@ class CriteriaImpl implements Criteria {
 	}
 
 	protected function getJoinClause() {
-		$rc = '';
-		foreach ($this->subcriteria AS list($criteria, $joinCriterion)) {
-			$rc .= ' INNER JOIN '.$criteria->getFromClause().' ON '.$joinCriterion->toSqlString($this, $criteria);
-		}
+	    $rc = NULL;
+	    if (count($this->subcriteria) > 0) {
+        	$rc = '';
+        	foreach ($this->subcriteria AS list($criteria, $joinCriterion)) {
+        		$rc .= ' INNER JOIN '.$criteria->getFromClause().' ON '.$joinCriterion->toSqlString($this, $criteria);
+        	}
+	    }
 		return $rc;
 	}
 
 	protected function getGroupByClause() {
-		return '';
+		return NULL;
 	}
 
 	protected function getWhereClause() {
