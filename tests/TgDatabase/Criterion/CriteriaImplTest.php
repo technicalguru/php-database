@@ -55,5 +55,77 @@ final class CriteriaImplTest extends TestCase {
         }
     }
     
+    public function testQuoteNameSimple(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            $criteria = new CriteriaImpl($database, 'dual');
+            $this->assertEquals('`aName`', $criteria->quoteName(NULL, 'aName'));
+        }
+    }
+    
+    public function testQuoteNameSimple2(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            $criteria = new CriteriaImpl($database, 'dual');
+            $this->assertEquals('`aName`', $criteria->quoteName('aName'));
+        }
+    }
+    
+    public function testQuoteNameCriteriaAlias(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            $criteria = new CriteriaImpl($database, 'dual');
+            $this->assertEquals('`a`.`aName`', $criteria->quoteName('a', 'aName'));
+        }
+    }
+    
+    public function testQuoteNameExplicitAlias(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            $criteria = new CriteriaImpl($database, 'dual');
+            $this->assertEquals('`b`.`aName`', $criteria->quoteName('a', array('b', 'aName')));
+        }
+    }
+    
+    public function testQuoteNameExplicitAlias2(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            $criteria = new CriteriaImpl($database, 'dual');
+            $this->assertEquals('`b`.`aName`', $criteria->quoteName(array('b', 'aName')));
+        }
+    }
+    
+    public function testPrepareValueString(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            $criteria = new CriteriaImpl($database, 'dual');
+            $this->assertEquals('\'aString\'', $criteria->prepareValue('aString', FALSE));
+        }
+    }
+    
+    public function testPrepareValueStringIgnoreCase(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            $criteria = new CriteriaImpl($database, 'dual');
+            $this->assertEquals('\'astring\'', $criteria->prepareValue('aString', TRUE));
+        }
+    }
+    
+    public function testPrepareValueNoString(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            $criteria = new CriteriaImpl($database, 'dual');
+            $this->assertEquals(13, $criteria->prepareValue(13, FALSE));
+        }
+    }
+    
+    public function testPrepareValueNoStringIgnoreCase(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            $criteria = new CriteriaImpl($database, 'dual');
+            $this->assertEquals(13, $criteria->prepareValue(13, TRUE));
+        }
+    }
+    
     
 }

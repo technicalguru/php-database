@@ -228,7 +228,7 @@ class CriteriaImpl implements Criteria {
 		return $rc;
 	}
 
-	public function prepareValue($value, $lowerCase) {
+	public function prepareValue($value, $lowerCase = FALSE) {
 		if ($lowerCase && is_string($value)) $value = strtolower($value);
 		return $this->database->prepareValue($value);
 	}
