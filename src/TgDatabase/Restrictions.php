@@ -10,6 +10,7 @@ use TgDatabase\Criterion\InExpression;
 use TgDatabase\Criterion\NotInExpression;
 use TgDatabase\Criterion\PropertyExpression;
 use TgDatabase\Criterion\BetweenExpression;
+use TgDatabase\Criterion\SqlExpression;
 
 /**
   * Provides the built-in citerions.
@@ -172,5 +173,12 @@ class Restrictions {
 		return new PropertyExpression($propertyName1, $propertyName2, '<=');
 	}
 
+	/**
+	  * Apply a SQL constraint. (Exists as fallback to enable other expressions not supported yet)
+	  */
+	public static function sql($sql) {
+		return new SqlExpression($sql);
+	}
 
+	
 }

@@ -7,6 +7,7 @@ use TgDatabase\Criterion\RowCountProjection;
 use TgDatabase\Criterion\CountProjection;
 use TgDatabase\Criterion\AggregateProjection;
 use TgDatabase\Criterion\AliasedProjection;
+use TgDatabase\Criterion\SqlProjection;
 
 class Projections {
 
@@ -45,4 +46,10 @@ class Projections {
 	public static function alias($projection, $alias) {
 		return new AliasedProjection($projection, $alias);
 	}
+	
+	public static function sql($sql) {
+		return new SqlProjection($sql);
+	}
+
+	
 }
