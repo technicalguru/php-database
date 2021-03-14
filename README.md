@@ -65,8 +65,8 @@ The interface usually delivers `stdClass` objects by default. However, you can n
 your own data class so the data will be populated in such a class:
 
 ```
-$arr = $db->queryList('SELECT * FROM #__devtest', 'MyNamespace\MyDataClass');
-$obj = $db->querySingle('SELECT * FROM #__devtest WHERE uid='.$uid, 'MyNamespace\MyDataClass');
+$arr = $db->queryList('SELECT * FROM #__devtest', 'MyNamespace\\MyDataClass');
+$obj = $db->querySingle('SELECT * FROM #__devtest WHERE uid='.$uid, 'MyNamespace\\MyDataClass');
 ```
 
 ## Inserting, Updating and deleting objects
@@ -144,10 +144,10 @@ However, you can tell `DAO` your specifics:
 
 ```
 // Uses a specific class for the data
-$dao = \TgDatabase\DAO($db, '#__users', 'MyNamespace\User`);
+$dao = \TgDatabase\DAO($db, '#__users', 'MyNamespace\\User`);
 
 // Uses a specific class and another primary key attribute
-$dao = \TgDatabase\DAO($db, '#__users', 'MyNamespace\User`, 'id');
+$dao = \TgDatabase\DAO($db, '#__users', 'MyNamespace\\User`, 'id');
 ```
 
 `DAO` can actually handle non-numeric primary keys. The usage is not recommended though.
@@ -251,7 +251,7 @@ That way you can further abstract data access, e.g.
 class Users extends DAO {
 
     public function __construct($database) {
-        parent::__construct($database, '#__users', 'MyNamespace\User');
+        parent::__construct($database, '#__users', 'MyNamespace\\User');
     }
     
     public function findByEmail($email) {
@@ -343,6 +343,147 @@ $users = $myModel->get('users')->find();
 ```
 
 Imagine, how much error-proned code you would have to write yourself!
+
+# Criteria API
+Version 1.2 introduces a basic form of `Criteria` which gives you more freedom to express SQL conditions
+when searching for rows and objects. It is designed using the Hibernate ORM Criteria template. So much
+of the code may appear familiar to you.
+
+The Criteria API was created additional to the Data Model and DAO API and enhances it. So you can still use
+the v1.0 way of searching objects while already starting the Criteria API. However, it is planned to
+replace the `queryList()` and `querySingle()` methods in `Database` as well as  `count()` and 
+`find()` methods in `DAO` by the Criteria API in next major versions. At the moment both APIs exist
+independently.
+
+**Disclaimer:** The Criteria API cannot yet produce `GROUP BY` clauses as they are more complex to build.
+It will be added later.
+
+## Creating a Criteria
+Two ways exist: Creating a `Criteria` object from the `Database` object, or alternatively from the `DAO`
+object:
+
+```
+// From Database object
+$criteria = $database->createCriteria('#__users');
+ 
+// From DAO object
+$criteria = $userDAO->createCriteria();
+```
+
+You can define model classes (the objects returned from `SELECT` queries) and aliases when creating a `Criteria`:
+
+```
+// From Database object
+$criteria = $database->createCriteria('#__users', 'MyNamespace\\User', 'a');
+ 
+// From DAO object
+$criteria = $userDAO->createCriteria('a');
+```
+
+As the DAO already knows about the model class, there is no need to mention it when creating from a `DAO`.
+
+The alias is assigned to the underlying table name and will be added automatically when required in restrictions.
+
+## Using Restrictions
+Restrictions are expressions that can be used in `WHERE` clauses (and in `JOIN` - see below). The helper
+class `Restrictions` helps you to create them:
+
+```
+$expr1 = Restrictions::eq('name', 'myUsername');
+$expr2 = Restrictions::isNotNull('email');
+$criteria->add($expr1, $expr);
+```
+
+The most common restrictions are provided: eq, ne, lt, gt, ge, le, like, isNull, isNotNull, between. You can also
+use restrictions between two properties:
+
+```
+// Check for equalitity of name and email of a user.
+$expr = Restrictions::eq('name', 'email');
+```
+
+And it is possible to combine restrictions with `and()` and `or()`:
+
+```
+$expr = Restrictions::or($expr1, $expr2, $expr3);
+```
+
+## Using Projections
+Basic projections - the aggregation of columns of different rows - are available:
+
+```
+$proj = Projections::rowCount();
+$criteria->setProjection($proj);
+```
+
+You will find projections for: count, distinct, sum, avg, min, max. Please notice that
+the returned model class is always the `stdClass` when using projections.
+
+## Subcriteria and JOINs
+This is most likely the biggest advance in using the Criteria API. The traditional API methods
+were not able to use subcriteria when searching for objects depending from other tables.
+
+Let's assume you want to find all books in a database whose author name start with an A. 
+The main criteria comes from books then as it is our desired model class to be returned
+
+```
+$criteria = $bookDAO->createCriteria('a');
+```
+
+Next we join the authors table and add it to the main criteria using the respective restriction
+to join them properly:
+
+```
+$authors     = $authorDAO->createCriteria('b');
+$restriction = Restrictions::eq(array('a','author'), array('b','uid'));
+$criteria->addCriteria($authors, $restriction);
+```
+
+And finally we apply the search condition for the author:
+
+```
+$authors->add(Restrictions::like('name', 'A%'));
+```
+
+## Getting the result
+That's the most easiest part:
+
+```
+$criteria->list();
+```
+
+You can set restrictions on the result:
+
+```
+$criteria->setFirstResult(10);
+$criteria->setMaxResults(20);
+```
+
+## Advantages and Limitations
+The Criteria API will further ease in searching object in a database and return model classes, using more
+complex expressions and restrictions. You will be able to dynamically apply restrictions depending on
+the requirements of your front-end users and your application. And you won't need the DAO once you 
+created the `Criteria` object. It is self-contained.
+
+However, some limitations exist:
+
+' Criteria API supports basic use cases so far (searching objects with simple restrictions).
+* Only MySQL / MariaDB SQL dialect is produced (but can be extended to other dialects easily when you stick to the API).
+* GROUP BY clauses are not implemented
+* Multiple projections are not yet supported (such as `SELECT MAX(name), MIN(name) FROM #__users`) - will be extended.
+* Criteria API is not yet built into DAOs to make it more exchangeable. This might break the DAO API and hence will 
+  be added in one of the next major versions.
+* A few of the limitations may be ovecome by using the `SqlExpression` and `SqlProjection` classes:
+
+```
+// Use a specific restriction not supported
+$myExpr = Restrictions::sql('my-sql-fragment');
+
+// Use a specific projection not supported
+$myProj = Projections::sql('name, email');
+```
+  
+But feel free to raise an issue (see below) when you need some extension that is not yet supported.
 
 # Contribution
 Report a bug, request an enhancement or pull request at the [GitHub Issue Tracker](https://github.com/technicalguru/php-database/issues).

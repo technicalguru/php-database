@@ -140,6 +140,15 @@ class Database {
 	}
 
 	/**
+	  * Creates a new criteria object for this database.
+	  * @param string $tableName  - the table to be queried
+	  * @param string $modelClass - the result class in the query.
+	  */
+	public function createCriteria($tableName, $modelClass = NULL, $alias = NULL) {
+		return new Criterion\CriteriaImpl($this, $tableName, $modelClass, $alias);
+	}
+
+	/**
 	 * Internal function to log an error appearing with given SQL statement.
 	 * <p>Will log the error text (from connection object), the SQL statement and the stacktrace.</p>
 	 * @param string $sql - SQL statement that caused the problem.
@@ -157,7 +166,9 @@ class Database {
 	 * @param string $class - the class name of the object to return.
 	 * @return mixed the fetched object or FALSE.
 	 */
-	public function querySingle($sql, $class = 'stdClass') {
+	public function querySingle($sql, $class = NULL) {
+		if ($class == NULL) $class = 'stdClass';
+
 		$sql = $this->replaceTablePrefix($sql);
 		$rc  = null;
 		$res = $this->query($sql);
@@ -176,7 +187,9 @@ class Database {
 	 * @param string $class - the class name of the objects to return.
 	 * @return mixed the array of fetched objects or FALSE.
 	 */
-	public function queryList($sql, $class = 'stdClass') {
+	public function queryList($sql, $class = NULL) {
+		if ($class == NULL) $class = 'stdClass';
+
 		$sql = $this->replaceTablePrefix($sql);
 		$rc  = array();
 		$res = $this->query($sql);
