@@ -9,6 +9,7 @@ use TgDatabase\Criterion\NotNullExpression;
 use TgDatabase\Criterion\InExpression;
 use TgDatabase\Criterion\NotInExpression;
 use TgDatabase\Criterion\PropertyExpression;
+use TgDatabase\Criterion\BetweenExpression;
 
 /**
   * Provides the built-in citerions.
@@ -78,6 +79,13 @@ class Restrictions {
 	  */
 	public static function le($propertyName, $value) {
 		return new SimpleExpression($propertyName, $value, '<=');
+	}
+
+	/**
+	  * Apply a "between" constraint to the named property.
+	  */
+	public static function between($propertyName, $minValue, $maxValue) {
+		return new BetweenExpression($propertyName, $minValue, $maxValue);
 	}
 
 	/**

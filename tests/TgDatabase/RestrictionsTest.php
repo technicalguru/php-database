@@ -66,6 +66,16 @@ final class RestrictionsTest extends TestCase {
         $this->testSqlString('`aName` <= \'aValue\'', $expr);
     }
         
+    public function testBetween(): void {
+        $expr = Restrictions::between('aName', 'aValue1', 'aValue2');
+        $this->testSqlString('`aName` BETWEEN \'aValue1\' AND \'aValue2\'', $expr);
+    }
+        
+    public function testBetweenIgnoreCase(): void {
+        $expr = Restrictions::between('aName', 'aValue1', 'aValue2')->ignoreCase();
+        $this->testSqlString('LOWER(`aName`) BETWEEN \'avalue1\' AND \'avalue2\'', $expr);
+    }
+        
     public function testIsNull(): void {
         $expr = Restrictions::isNull('aName');
         $this->testSqlString('`aName` IS NULL', $expr);
