@@ -247,5 +247,12 @@ class CriteriaImpl implements Criteria {
 		return $this->database->quoteName($aliasOrIdentifier);
 	}
 
+	/**
+	 * Returns the error from the database connection.
+	 * @return string error text
+	 */
+	public function error() {
+		return $this->error();
+	}
 }
 

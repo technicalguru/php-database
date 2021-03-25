@@ -81,6 +81,14 @@ class DAO {
 	}
 
 	/**
+	 * Returns the error from the database connection.
+	 * @return string error text
+	 */
+	public function error() {
+		return $this->database->error();
+	}
+
+	/**
 	  * Creates a new criteria object for this DAO.
 	  */
 	public function createCriteria($alias = NULL) {
