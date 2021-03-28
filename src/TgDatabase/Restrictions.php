@@ -121,6 +121,9 @@ class Restrictions {
 	  * Apply an "and" conjunction.
 	  */
 	public static function and(...$expressions) {
+		if ((count($expressions) == 1) && is_array($expressions[0])) {
+			return new LogicalExpression('AND', $expressions[0]);
+		}
 		return new LogicalExpression('AND', $expressions);
 	}
 
@@ -128,6 +131,9 @@ class Restrictions {
 	  * Apply an "or" conjunction.
 	  */
 	public static function or(...$expressions) {
+		if ((count($expressions) == 1) && is_array($expressions[0])) {
+			return new LogicalExpression('OR', $expressions[0]);
+		}
 		return new LogicalExpression('OR', $expressions);
 	}
 
