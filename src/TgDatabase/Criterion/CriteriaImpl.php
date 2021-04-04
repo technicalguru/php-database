@@ -94,19 +94,27 @@ class CriteriaImpl implements Criteria {
 	/**
 	  * Queries the database and returns all defined rows.
 	  */
-	public function list() {
+	public function list($throwException = FALSE) {
 		$sql = $this->toSqlString();
 		\TgLog\Log::debug('criteriaQuery: '.$sql);
-		return $this->database->queryList($sql, $this->resultClassName);
+		$rc = $this->database->queryList($sql, $this->resultClassName);
+		if ($this->hasError() && $throwException) {
+			throw new \Exception('Database error when querying: '.$this->error());
+		}
+		return $rc;
 	}
 
 	/**
 	  * Queries the database and returns only the first row.
 	  */
-	public function first() {
+	public function first($throwException = FALSE) {
 		$sql = $this->toSqlString();
 		\TgLog\Log::debug('criteriaQuery: '.$sql);
-		return $this->database->querySingle($sql, $this->resultClassName);
+		$rc = $this->database->querySingle($sql, $this->resultClassName);
+		if ($this->hasError() && $throwException) {
+			throw new \Exception('Database error when querying: '.$this->error());
+		}
+		return $rc;
 	}
 
 	public function toSqlString() {
@@ -248,11 +256,19 @@ class CriteriaImpl implements Criteria {
 	}
 
 	/**
+	 * Returns whether the database has an error.
+	 * @return boolean TRUE when an error exists
+	 */
+	public function hasError() {
+		return $this->database->hasError();
+	}
+
+	/**
 	 * Returns the error from the database connection.
 	 * @return string error text
 	 */
 	public function error() {
-		return $this->error();
+		return $this->database->error();
 	}
 }
 
