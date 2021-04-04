@@ -50,10 +50,23 @@ interface Criteria {
 	/**
 	  * Queries the database.
 	  */
-	public function list();
+	public function list($throwException = FALSE);
 
 	/**
 	  * Queries the database and returns all defined rows.
 	  */
-	public function first();
+	public function first($throwException = FALSE);
+
+	/**
+	 * Returns whether the database has an error.
+	 * @return boolean TRUE when an error exists
+	 */
+	public function hasError();
+
+	/**
+	 * Returns the database error from the last action.
+	 * @return string the error message
+	 */
+	public function error();
+
 }
