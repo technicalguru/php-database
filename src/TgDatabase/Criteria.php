@@ -48,12 +48,12 @@ interface Criteria {
 	public function addCriteria(Criteria $criteria, $joinCriterion);
 
 	/**
-	  * Queries the database and returns all rows.
+	  * Queries the database.
 	  */
 	public function list($throwException = FALSE);
 
 	/**
-	  * Queries the database and returns the first row.
+	  * Queries the database and returns all defined rows.
 	  */
 	public function first($throwException = FALSE);
 
