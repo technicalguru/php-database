@@ -14,13 +14,16 @@ class DataModel {
 
     private $models;
 
+	private $daoFactory;
+
     /**
      * Constructor.
      * @param Database $database - the database instance
      */
-    public function __construct($database) {
-        $this->database = $database;
-        $this->models = array();
+    public function __construct($database, $daoFactory = NULL) {
+        $this->database   = $database;
+		$this->daoFactory = $daoFactory;
+        $this->models     = array();
         $this->init($database);
     }
 
@@ -38,6 +41,9 @@ class DataModel {
      * return DAO the DAO registered or NULL
      */
     public function get($name) {
+		if (!isset($this->models[$name]) && ($this->daoFactory != NULL)) {
+			$this->register($name, $this->daoFactory->createDao($name));
+		} 
         return $this->models[$name];
     }
 
@@ -74,8 +80,10 @@ class DataModel {
 		$rc->tableChecks = new \stdClass;
 		$rc->success     = TRUE;
 		foreach ($this->models AS $name => $dao) {
-			$rc->tableChecks->$name = $dao->checkTable();
-			if (!$rc->tableChecks->$name) $rc->success = FALSE;
+			if ($dao != NULL) {
+				$rc->tableChecks->$name = $dao->checkTable();
+				if (!$rc->tableChecks->$name) $rc->success = FALSE;
+			}
 		}
 		return $rc;
 	}
