@@ -27,6 +27,20 @@ class DataModel {
         $this->init($database);
     }
 
+	/**
+	 * Returns the DAO factory object.
+	 */
+	public function getDaoFactory() {
+		return $this->daoFactory;
+	}
+
+	/**
+	 * Sets the DAO factory object
+	 */
+	public function setDaoFactory($daoFactory) {
+		$this->daoFactory = $daoFactory;
+	}
+
     /**
      * Initializes all DAOs.
      * <p>This method does nothing. Descendants shall override here and create and register their DAOs.</p>
