@@ -95,7 +95,7 @@ class CriteriaImpl implements Criteria {
 	  * Queries the database and returns all defined rows.
 	  */
 	public function list($throwException = FALSE) {
-		$sql = $this->toSqlString();
+		$sql = $this->getSelectSql();
 		\TgLog\Log::debug('criteriaQuery: '.$sql);
 		$rc = $this->database->queryList($sql, $this->resultClassName);
 		if ($this->hasError() && $throwException) {
@@ -108,7 +108,7 @@ class CriteriaImpl implements Criteria {
 	  * Queries the database and returns only the first row.
 	  */
 	public function first($throwException = FALSE) {
-		$sql = $this->toSqlString();
+		$sql = $this->getSelectSql();
 		\TgLog\Log::debug('criteriaQuery: '.$sql);
 		$rc = $this->database->querySingle($sql, $this->resultClassName);
 		if ($this->hasError() && $throwException) {
@@ -117,7 +117,33 @@ class CriteriaImpl implements Criteria {
 		return $rc;
 	}
 
-	public function toSqlString() {
+		/**
+	 * Updates the database.
+	 */
+	public function save($fields, $throwException = FALSE) {
+		$sql = $this->getUpdateSql($fields);
+		\TgLog\Log::debug('criteriaQuery: '.$sql);
+		$rc = $this->database->query($sql);
+		if ((($rc === FALSE) || $this->hasError()) && $throwException) {
+			throw new \Exception('Database error when updating: '.$this->error());
+		}
+		return $rc;
+	}
+
+	/**
+	 * Deletes objects from database.
+	 */
+	public function delete($throwException = FALSE) {
+		$sql = $this->getDeleteSql();
+		\TgLog\Log::debug('criteriaQuery: '.$sql);
+		$rc = $this->database->query($sql);
+		if ((($rc === FALSE) || $this->hasError()) && $throwException) {
+			throw new \Exception('Database error when deleting: '.$this->error());
+		}
+		return $rc;
+	}
+
+	public function getSelectSql() {
 		// SELECT projections
 		$rc = 'SELECT '.$this->getSelectClause();
 
@@ -155,6 +181,48 @@ class CriteriaImpl implements Criteria {
 		}
 
 		return $rc;
+	}
+
+	public function getUpdateSql($fields) {
+		// UPDATE
+		$rc = 'UPDATE ';
+
+		// SET
+		$rc .= ' SET '.$this->getSetClause($fields);
+
+		// FROM table
+		$rc .= ' FROM '.$this->getFromClause();
+
+		// WHERE clauses
+		$where = $this->getWhereClause();
+		if ($where != NULL) {
+			$rc .= ' WHERE '.$where;
+		}
+		
+		return $rc;
+	}
+
+	public function getDeleteSql() {
+		// DELETE
+		$rc = 'DELETE ';
+
+		// FROM table
+		$rc .= ' FROM '.$this->getFromClause();
+
+		// WHERE clauses
+		$where = $this->getWhereClause();
+		if ($where != NULL) {
+			$rc .= ' WHERE '.$where;
+		}
+		
+		return $rc;
+	}
+
+	/**
+	 * @deprecated Use #getSelectSql()
+	 */
+	public function toSqlString() {
+		return $this->getSelectSql();
 	}
 
 	protected function getSelectClause() {
@@ -234,6 +302,18 @@ class CriteriaImpl implements Criteria {
 			}
 		}
 		return $rc;
+	}
+
+	public function getSetClause($fields) {
+		if (is_object($fields)) $fields = get_object_vars($fields);
+		$values = array();
+		foreach ($fields AS $k => $v) {
+			$value = $v;
+			if ($v === NULL) $value = 'NULL';
+			else $value = $this->prepareValue($v);
+			$values[] = '`'.$k.'`='.$value;
+		}
+		return implode(', ', $values);
 	}
 
 	public function prepareValue($value, $lowerCase = FALSE) {

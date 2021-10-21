@@ -23,7 +23,7 @@ final class CriteriaImplTest extends TestCase {
             $criteria = new CriteriaImpl($database, 'dual');
             $criteria->add(Restrictions::eq('aName', 'aValue'));
             $criteria->addOrder(Order::asc('anotherName'));
-            $this->assertEquals('SELECT * FROM `dual` WHERE (`aName` = \'aValue\') ORDER BY `anotherName`', $criteria->toSqlString());
+            $this->assertEquals('SELECT * FROM `dual` WHERE (`aName` = \'aValue\') ORDER BY `anotherName`', $criteria->getSelectSql());
         }
     }
     
@@ -33,7 +33,7 @@ final class CriteriaImplTest extends TestCase {
             $criteria = new CriteriaImpl($database, 'dual');
             $criteria->setFirstResult(5);
             $criteria->setMaxResults(20);
-            $this->assertEquals('SELECT * FROM `dual` LIMIT 20 OFFSET 5', $criteria->toSqlString());
+            $this->assertEquals('SELECT * FROM `dual` LIMIT 20 OFFSET 5', $criteria->getSelectSql());
         }
     }
     
@@ -42,7 +42,7 @@ final class CriteriaImplTest extends TestCase {
         if ($database != NULL) {
             $criteria = new CriteriaImpl($database, 'dual');
             $criteria->setProjection(Projections::rowCount());
-            $this->assertEquals('SELECT COUNT(*) FROM `dual`', $criteria->toSqlString());
+            $this->assertEquals('SELECT COUNT(*) FROM `dual`', $criteria->getSelectSql());
         }
     }
     
@@ -51,7 +51,7 @@ final class CriteriaImplTest extends TestCase {
         if ($database != NULL) {
             $criteria = new CriteriaImpl($database, 'dual', NULL, 'a');
             $criteria->createCriteria('otherTable', 'b', Restrictions::eqProperty(array('a', 'details'), array('b', 'uid')));
-            $this->assertEquals('SELECT `a`.* FROM `dual` AS `a` INNER JOIN `otherTable` AS `b` ON `a`.`details` = `b`.`uid`', $criteria->toSqlString());
+            $this->assertEquals('SELECT `a`.* FROM `dual` AS `a` INNER JOIN `otherTable` AS `b` ON `a`.`details` = `b`.`uid`', $criteria->getSelectSql());
         }
     }
     
@@ -127,5 +127,5 @@ final class CriteriaImplTest extends TestCase {
         }
     }
     
-    
+    // TODO We need to test update and delete SQL
 }

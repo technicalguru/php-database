@@ -53,9 +53,19 @@ interface Criteria {
 	public function list($throwException = FALSE);
 
 	/**
-	  * Queries the database and returns all defined rows.
+	  * Queries the database and returns the first row.
 	  */
 	public function first($throwException = FALSE);
+
+	/**
+	 * Updates the database.
+	 */
+	public function save($fields, $throwException = FALSE);
+
+	/**
+	 * Deletes objects from database.
+	 */
+	public function delete($throwException = FALSE);
 
 	/**
 	 * Returns whether the database has an error.
