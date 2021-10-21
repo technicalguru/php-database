@@ -321,7 +321,7 @@ class Database {
 			else $rc = $this->quote(json_encode($value));
 		} else if (is_array($value)) {
 			$rc = $this->quote(json_encode($value));
-		} else if (is_numeric($value)) {
+		} else if (is_numeric($value) && !is_string($value)) {
 			// Nothing to do
 		} else {
 			$rc = $this->quote($value);
