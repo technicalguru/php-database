@@ -118,8 +118,7 @@ class DAO {
 	 * @return object the object fetched (can be NULL)
 	 */
 	public function get($uid) {
-		return $this->createCriteria(NULL, Restrictions::eq($this->idColumn, $uid))->first();
-		//return $this->database->querySingle('SELECT * FROM '.$this->database->quoteName($this->tableName).' WHERE '.$this->createCriterion($this->idColumn, $uid), $this->modelClass);
+		return $this->database->querySingle('SELECT * FROM '.$this->database->quoteName($this->tableName).' WHERE '.$this->createCriterion($this->idColumn, $uid), $this->modelClass);
 	}
 
 	/** 
@@ -131,22 +130,19 @@ class DAO {
 	 */
 	public function findByUid($uids, $order = array()) {
 		if (($uids == null) || !is_array($uids) || (count($uids) == 0)) return array();
-		return $this->createCriteria(NULL, Restrictions::in($this->idColumn, $uids), $order)->list();
-		//$where = $this->createCriterion($this->idColumn, $uids, 'IN');
-		//return $this->find($where, $order);
+		$where = $this->createCriterion($this->idColumn, $uids, 'IN');
+		return $this->find($where, $order);
 	}
 
 	/** 
 	 * Find objects with given criteria and in given order.
-	 * @param array $restrictions - the criterions to search for (AND) - see README.md (optional, default is empty array)
+	 * @param array $criteria - the criterions to search for (AND) - see README.md (optional, default is empty array)
 	 * @param array $order - list of order columns - see README.md (optional, default is empty array)
 	 * @param int $startIndex - index of first object in order to return (optional, default is 0)
 	 * @param int $maxObjects - number of objects to return at max (optional, default is 0 = all objects)
 	 * @return array list of objects found matching the criteria
 	 */
-	public function find($restrictions = array(), $order = array(), $startIndex = 0, $maxObjects = 0) {
-		return $this->createCriteria(NULL, $restrictions, $order, $startIndex, $maxObjects)->list();
-/*
+	public function find($criteria = array(), $order = array(), $startIndex = 0, $maxObjects = 0) {
 		$whereClause = $this->createWhereClause($criteria);
 		$orderClause = $this->createOrderClause($order);
 		$limit       = '';
@@ -158,25 +154,19 @@ class DAO {
 			}
 		}
 		return $this->database->queryList('SELECT * FROM '.$this->database->quoteName($this->tableName).' '.$whereClause.' '.$orderClause.$limit, $this->modelClass);
-*/
 	}
 
 	/** Count objects with given criteria.
 	 * @param array $criteria - the criterions to search for (AND) - see README.md (optional, default is empty array)
 	 * @return int the number of objects matching the criteria.
 	 */
-	public function count($restrictions = array()) {
-		$criteria = $this->createCriteria(NULL, $restrictions)->setProjection(Projections::alias(Projections::rowCount(), 'cnt'));
-/*
+	public function count($criteria = array()) {
 		$whereClause = $this->createWhereClause($criteria);
 		$record = $this->database->querySingle('SELECT COUNT(*) AS cnt FROM '.$this->database->quoteName($this->tableName).' '.$whereClause);
 		if ($record !== FALSE) {
 			return $record->cnt;
 		}
-*/
-		$record = $criteria->first();
-		if ($criteria->hasError()) return 0;
-		return $record->cnt;
+		return 0;
 	}
 
 	/** 
@@ -185,13 +175,10 @@ class DAO {
 	 * @param array $order - list of order columns - see README.md (optional, default is empty array)
 	 * @return object the first object found or NULL
 	 */
-	public function findSingle($restrictions = array(), $order = array()) {
-		return $this->createCriteria(NULL, $restrictions, $order)->first();
-/*
+	public function findSingle($criteria = array(), $order = array()) {
 		$result = $this->find($criteria, $order, -1, 1);
 		if (is_array($result) && (count($result)>0)) return $result[0];
 		return NULL;
-*/
 	}
 
 	/**
@@ -297,11 +284,9 @@ class DAO {
 	 * @param array $criteria - the criterions to match for delete for (AND) - see README.md (optional, default will clear table)
 	 * @return mixed - FALSE when delete failed, TRUE when successful
 	 */
-	public function deleteBy($restrictions = array()) {
-		$criteria     = $this->createCriteria();
-	    $whereClause  = self::toRestrictions($restrictions)->toSqlString($criteria, $criteria);
-		//$this->createWhereClause($criteria);
-	    return $this->database->delete($this->tableName, $whereClause);
+	public function deleteBy($criteria = array()) {
+	    $whereClause = $this->createWhereClause($criteria);
+	    return $this->database->delete($this->tableName, substr($whereClause, 6));
 	}
 
 	/**
@@ -366,7 +351,9 @@ class DAO {
 				$rc = strtolower($combine) == 'and' ? Restrictions::and() : Restrictions::or();
 				if (count($restrictions) > 0) {
 					foreach ($restrictions AS $key => $value) {
-						if (is_string($value) && !is_string($key)) {
+						if (is_object($value) && is_a($value, 'TgDatabase\\Criterion')) {
+							$rc->add(§value);
+						} else if (is_string($value) && !is_string($key)) {
 							$rc->add(Restrictions::sql($value));
 						} else if (is_array($value)) {
 							$rc->add(self::toCriterion($value));
@@ -488,13 +475,5 @@ class DAO {
             return Order::asc($s);
         }
 		return Order::asc($s);
-/*
-		$parts  = explode(' ', trim($order));
-		$isDesc = strpos(strtoupper($order), 'DESC');
-		if ($isDesc > 0) {
-			return Order::desc($parts[0]);
-		}
-		return Order::asc($parts[0]);
-*/
 	}
 }

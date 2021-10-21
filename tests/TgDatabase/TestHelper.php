@@ -42,5 +42,12 @@ class TestHelper {
     public static function hasTestDatabase(): bool {
         return getenv('DB_TEST_HOST') != NULL;
     }
+
+    public static function getDao($tableName = 'dual', $modelClass = 'stdClass'): ?DAO {
+		if (self::hasTestDatabase()) {
+            return new DAO(self::getDatabase(), $tableName, $modelClass);
+        }
+        return NULL;
+    }
 }
 

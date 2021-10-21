@@ -95,7 +95,7 @@ final class DaoTest extends TestCase {
 		$dao = TestHelper::getDao();
         if ($dao != NULL) {
 			$crit = $dao->createCriteria();
-			$this->assertEquals('`attr` LIKE \'value\'', DAO::toCriterion('attr', 'value', 'like')->toSqlString($crit, $crit));
+			$this->assertEquals('`attr` LIKE \'value\'', DAO::toCriterion('attr', 'value', 'LIKE')->toSqlString($crit, $crit));
 		}
 	}
 
