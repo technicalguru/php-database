@@ -104,7 +104,7 @@ class DAO {
 
 		// Add orders
 		if (!is_array($order)) $order = array($order);
-		foreach ($order        AS $o) $criteria->addOrder(self::toOrder($o));
+		foreach ($order AS $o) $criteria->addOrder(self::toOrder($o));
 
 		// Limit result
 		if ($startIndex >= 0) $criteria->setFirstResult($startIndex);
@@ -355,17 +355,17 @@ class DAO {
 
 	/**
 	 * Creates an array of Restriction objects.
-	 * @param mixed $criteria - string or array of field clauses or Restriction objects - see README.md (optional)
-	 * @param string $combine - the logical operator to combine the criteria (optional, default is AND)
+	 * @param mixed  $restrictions - string or array of field clauses or Restriction objects - see README.md (optional)
+	 * @param string $combine      - the logical operator to combine the criteria (optional, default is AND)
 	 * @return array of Restriction objects
 	 */
-	public static function toRestrictions($criteria = NULL, $combine = 'AND') {
+	public static function toRestrictions($restrictions = NULL, $combine = 'AND') {
 		$rc = NULL;
-		if ($criteria != NULL) {
-			if (is_array($criteria)) {
-				$rc = $combine == 'AND' ? Restrictions::and() : Restrictions::or();
-				if (count($criteria) > 0) {
-					foreach ($criteria AS $key => $value) {
+		if ($restrictions != NULL) {
+			if (is_array($restrictions)) {
+				$rc = strtolower($combine) == 'and' ? Restrictions::and() : Restrictions::or();
+				if (count($restrictions) > 0) {
+					foreach ($restrictions AS $key => $value) {
 						if (is_string($value) && !is_string($key)) {
 							$rc->add(Restrictions::sql($value));
 						} else if (is_array($value)) {
@@ -375,10 +375,10 @@ class DAO {
 						}
 					}
 				}
-			} else if (is_object($criteria)) {
-				$rc = $criteria;
-			} else if (is_string($criteria)) {
-				$rc = Restrictions::sql($criteria);
+			} else if (is_object($restrictions)) {
+				$rc = $restrictions;
+			} else if (is_string($restrictions)) {
+				$rc = Restrictions::sql($restrictions);
 			}
 		}
 		return $rc;
@@ -452,15 +452,15 @@ class DAO {
 				$field = $field[0];
 			}
 			if ($operator == NULL) $operator = '=';
-
+			
 			if ($value === NULL) {
 				$rc = $operator == '='  ? Restrictions::isNull($field) : Restrictions::isNotNull($field);
 			} else {
-				switch ($operator) {
-				case 'IN':
+				switch (strtolower($operator)) {
+				case 'in':
 					if (is_array($value)) $rc = Restrictions::in($field, $value);
 					break;
-				case 'NOT IN':
+				case 'not in':
 					if (is_array($value)) $rc = Restrictions::notIn($field, $value);
 					break;
 				default:
@@ -479,11 +479,22 @@ class DAO {
 	public static function toOrder($order) {
 		if (is_object($order)) return $order;
 
+		$s = trim($s);
+        $pos = strrpos($s, ' ');
+        if ($pos > 0) {
+            $lastWord = strtolower(substr($s, $pos+1));
+            if ($lastWord == 'desc') return Order::desc(substr($s, 0, $pos));
+            if ($lastWord == 'asc') return Order::asc(substr($s, 0, $pos));
+            return Order::asc($s);
+        }
+		return Order::asc($s);
+/*
 		$parts  = explode(' ', trim($order));
 		$isDesc = strpos(strtoupper($order), 'DESC');
 		if ($isDesc > 0) {
 			return Order::desc($parts[0]);
 		}
 		return Order::asc($parts[0]);
+*/
 	}
 }
