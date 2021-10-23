@@ -3,9 +3,11 @@ A PHP library for accessing databases easily. The library provide a MySQL/MariaD
 that abstracts many daily task in SQL writing, such as quoting, escaping, building SQL statement, WHERE
 clauses, error handling and so on.
 
-A Data Access Object (DAO) base class is also provided to cate for object-relational mapping tasks. The
+A Data Access Object (DAO) base class is also provided to cater for object-relational mapping tasks. The
 interface will make it easier to find objects by ID, create and update them, using special data objects
 of your own.
+
+Finally, a Criteria API is provided to support a flexible, SQL dialect independent restriction writing.
 
 # License
 This project is licensed under [GNU LGPL 3.0](LICENSE.md). 
@@ -302,7 +304,7 @@ for all our `DAO`s. Here comes the `DataModel`:
 ```
 
 // Setup the model
-$model = new \TGDatabase\DataModel($database);
+$model = new \TgDatabase\DataModel($database);
 $model->register('users',    $userDAO);
 $model->register('products', $productDAO);
 
@@ -343,6 +345,35 @@ $users = $myModel->get('users')->find();
 ```
 
 Imagine, how much error-proned code you would have to write yourself!
+
+# Using a DaoFactory
+
+The `DataModel` can make use of a `DaoFactory`. Such factory will create DAOs lazily when
+requested by your application. Simply create your own instance of such a factory:
+
+```
+class MyFactory implements DaoFactory {
+
+    // code omitted for ease of understanding...
+
+    public function createDao($name) {
+        switch ($name) {
+            case 'users':    return new UserDAO($this->database);
+            case 'products': return new ProductDAO($this->database);
+        }
+        return NULL;
+    }
+}
+```
+...and use it...
+```
+$model = new \TgDatabase\DataModel($database, $myDaoFactory);
+```
+
+Now you don't need to overwrite the `init()` method of the DataModel.
+
+The use of a DaoFactory is recommended when you have many DAOs to manage and your application
+usually uses only a fraction of it. It also will decouple your DataModel from the DAOs.
 
 # Criteria API
 Version 1.2 introduces a basic form of `Criteria` which gives you more freedom to express SQL conditions
@@ -460,7 +491,7 @@ $criteria->setMaxResults(20);
 ```
 
 ## Advantages and Limitations
-The Criteria API will further ease in searching object in a database and return model classes, using more
+The Criteria API will further ease searching objects in a database and return model classes, using more
 complex expressions and restrictions. You will be able to dynamically apply restrictions depending on
 the requirements of your front-end users and your application. And you won't need the DAO once you 
 created the `Criteria` object. It is self-contained.

@@ -6,124 +6,124 @@ use PHPUnit\Framework\TestCase;
 use TgDatabase\Restrictions;
 use TgDatabase\Projections;
 use TgDatabase\Criterion;
-use TgDatabase\Criteria;
+use TgDatabase\Query;
 use TgDatabase\TestHelper;
 use TgDatabase\Order;
 
 /**
- * Tests the CriteriaImpl.
+ * Tests the QueryImpl.
  * @author ralph
  *
  */
-final class CriteriaImplTest extends TestCase {
+final class QueryImplTest extends TestCase {
     
     public function testSimple(): void {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {
-            $criteria = new CriteriaImpl($database, 'dual');
-            $criteria->add(Restrictions::eq('aName', 'aValue'));
-            $criteria->addOrder(Order::asc('anotherName'));
-            $this->assertEquals('SELECT * FROM `dual` WHERE (`aName` = \'aValue\') ORDER BY `anotherName`', $criteria->getSelectSql());
+            $query = new QueryImpl($database, 'dual');
+            $query->add(Restrictions::eq('aName', 'aValue'));
+            $query->addOrder(Order::asc('anotherName'));
+            $this->assertEquals('SELECT * FROM `dual` WHERE (`aName` = \'aValue\') ORDER BY `anotherName`', $query->getSelectSql());
         }
     }
     
     public function testLimit(): void {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {
-            $criteria = new CriteriaImpl($database, 'dual');
-            $criteria->setFirstResult(5);
-            $criteria->setMaxResults(20);
-            $this->assertEquals('SELECT * FROM `dual` LIMIT 20 OFFSET 5', $criteria->getSelectSql());
+            $query = new QueryImpl($database, 'dual');
+            $query->setFirstResult(5);
+            $query->setMaxResults(20);
+            $this->assertEquals('SELECT * FROM `dual` LIMIT 20 OFFSET 5', $query->getSelectSql());
         }
     }
     
     public function testProjection(): void {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {
-            $criteria = new CriteriaImpl($database, 'dual');
-            $criteria->setProjection(Projections::rowCount());
-            $this->assertEquals('SELECT COUNT(*) FROM `dual`', $criteria->getSelectSql());
+            $query = new QueryImpl($database, 'dual');
+            $query->setProjection(Projections::rowCount());
+            $this->assertEquals('SELECT COUNT(*) FROM `dual`', $query->getSelectSql());
         }
     }
     
     public function testJoin(): void {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {
-            $criteria = new CriteriaImpl($database, 'dual', NULL, 'a');
-            $criteria->createCriteria('otherTable', 'b', Restrictions::eqProperty(array('a', 'details'), array('b', 'uid')));
-            $this->assertEquals('SELECT `a`.* FROM `dual` AS `a` INNER JOIN `otherTable` AS `b` ON `a`.`details` = `b`.`uid`', $criteria->getSelectSql());
+            $query = new QueryImpl($database, 'dual', NULL, 'a');
+            $query->createJoinedQuery('otherTable', 'b', Restrictions::eqProperty(array('a', 'details'), array('b', 'uid')));
+            $this->assertEquals('SELECT `a`.* FROM `dual` AS `a` INNER JOIN `otherTable` AS `b` ON `a`.`details` = `b`.`uid`', $query->getSelectSql());
         }
     }
     
     public function testQuoteNameSimple(): void {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {
-            $criteria = new CriteriaImpl($database, 'dual');
-            $this->assertEquals('`aName`', $criteria->quoteName(NULL, 'aName'));
+            $query = new QueryImpl($database, 'dual');
+            $this->assertEquals('`aName`', $query->quoteName(NULL, 'aName'));
         }
     }
     
     public function testQuoteNameSimple2(): void {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {
-            $criteria = new CriteriaImpl($database, 'dual');
-            $this->assertEquals('`aName`', $criteria->quoteName('aName'));
+            $query = new QueryImpl($database, 'dual');
+            $this->assertEquals('`aName`', $query->quoteName('aName'));
         }
     }
     
-    public function testQuoteNameCriteriaAlias(): void {
+    public function testQuoteNameQueryAlias(): void {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {
-            $criteria = new CriteriaImpl($database, 'dual');
-            $this->assertEquals('`a`.`aName`', $criteria->quoteName('a', 'aName'));
+            $query = new QueryImpl($database, 'dual');
+            $this->assertEquals('`a`.`aName`', $query->quoteName('a', 'aName'));
         }
     }
     
     public function testQuoteNameExplicitAlias(): void {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {
-            $criteria = new CriteriaImpl($database, 'dual');
-            $this->assertEquals('`b`.`aName`', $criteria->quoteName('a', array('b', 'aName')));
+            $query = new QueryImpl($database, 'dual');
+            $this->assertEquals('`b`.`aName`', $query->quoteName('a', array('b', 'aName')));
         }
     }
     
     public function testQuoteNameExplicitAlias2(): void {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {
-            $criteria = new CriteriaImpl($database, 'dual');
-            $this->assertEquals('`b`.`aName`', $criteria->quoteName(array('b', 'aName')));
+            $query = new QueryImpl($database, 'dual');
+            $this->assertEquals('`b`.`aName`', $query->quoteName(array('b', 'aName')));
         }
     }
     
     public function testPrepareValueString(): void {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {
-            $criteria = new CriteriaImpl($database, 'dual');
-            $this->assertEquals('\'aString\'', $criteria->prepareValue('aString', FALSE));
+            $query = new QueryImpl($database, 'dual');
+            $this->assertEquals('\'aString\'', $query->prepareValue('aString', FALSE));
         }
     }
     
     public function testPrepareValueStringIgnoreCase(): void {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {
-            $criteria = new CriteriaImpl($database, 'dual');
-            $this->assertEquals('\'astring\'', $criteria->prepareValue('aString', TRUE));
+            $query = new QueryImpl($database, 'dual');
+            $this->assertEquals('\'astring\'', $query->prepareValue('aString', TRUE));
         }
     }
     
     public function testPrepareValueNoString(): void {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {
-            $criteria = new CriteriaImpl($database, 'dual');
-            $this->assertEquals(13, $criteria->prepareValue(13, FALSE));
+            $query = new QueryImpl($database, 'dual');
+            $this->assertEquals(13, $query->prepareValue(13, FALSE));
         }
     }
     
     public function testPrepareValueNoStringIgnoreCase(): void {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {
-            $criteria = new CriteriaImpl($database, 'dual');
-            $this->assertEquals(13, $criteria->prepareValue(13, TRUE));
+            $query = new QueryImpl($database, 'dual');
+            $this->assertEquals(13, $query->prepareValue(13, TRUE));
         }
     }
     

@@ -57,9 +57,9 @@ final class ProjectionsTest extends TestCase {
     }
         
     protected function testSqlString(string $expected, Projection $expr, $alias = NULL): void {
-        $criteria = TestHelper::createCriteria(NULL, NULL, $alias);
-        if ($criteria != NULL) {
-            $this->assertEquals($expected, $expr->toSqlString($criteria,$criteria));
+        $query = TestHelper::createQuery(NULL, NULL, $alias);
+        if ($query != NULL) {
+            $this->assertEquals($expected, $expr->toSqlString($query,$query));
         }
     }
 }

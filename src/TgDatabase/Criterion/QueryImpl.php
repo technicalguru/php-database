@@ -2,13 +2,13 @@
 
 namespace TgDatabase\Criterion;
 
-use TgDatabase\Criteria;
+use TgDatabase\Query;
 use TgDatabase\Criterion;
 use TgDatabase\Order;
 use TgDatabase\Projection;
 
 
-class CriteriaImpl implements Criteria {
+class QueryImpl implements Query {
 
 	public function __construct($database, $tableName, $resultClassName = NULL, $alias = NULL) {
 		$this->database        = $database;
@@ -16,7 +16,7 @@ class CriteriaImpl implements Criteria {
 		$this->resultClassName = $resultClassName;
 		$this->alias           = $alias;
 		$this->projection      = NULL;
-		$this->subcriteria     = array();
+		$this->subqueries     = array();
 		$this->criterions      = array();
 		$this->orders          = array();
 		$this->firstResult     = -1;
@@ -25,7 +25,7 @@ class CriteriaImpl implements Criteria {
 
 	/**
 	  * Add a restriction to constrain the results to be retrieved.
-	  * @return Criteria - this criteria for method chaining.
+	  * @return Query - this query for method chaining.
 	  */
 	public function add(Criterion ...$criterions) {
 		foreach ($criterions AS $criterion) $this->criterions[] = $criterion;
@@ -41,7 +41,7 @@ class CriteriaImpl implements Criteria {
 	}
 
 	/**
-	  * Add a projection to the criteria.
+	  * Add a projection to the query.
 	  */
 	public function setProjection(Projection $projection) {
 		$this->projection      = $projection;
@@ -51,7 +51,7 @@ class CriteriaImpl implements Criteria {
 
 	/**
 	  * Set the index of the first result to be retrieved.
-	  * @return Criteria - this criteria for method chaining.
+	  * @return Query - this query for method chaining.
 	  */
 	public function setFirstResult(int $firstResult) {
 		$this->firstResult = $firstResult;
@@ -60,7 +60,7 @@ class CriteriaImpl implements Criteria {
 
 	/**
 	  * Set a limit upon the number of rows to be retrieved. 
-	  * @return Criteria - this criteria for method chaining.
+	  * @return Query - this query for method chaining.
 	  */
 	public function setMaxResults(int $maxResults) {
 		$this->maxResults = $maxResults;
@@ -68,27 +68,43 @@ class CriteriaImpl implements Criteria {
 	}
 
 	/**
-	  * Returns the alias of this criteria.
+	  * Returns the alias of this query.
 	  */
 	public function getAlias() {
 		return $this->alias;
 	}
 
 	/**
-	  * Create a new join criteria.
+	  * Create a new join query.
 	  */
-	public function createCriteria($tableName, $alias, $joinCriterion) {
-		$rc = new CriteriaImpl($this->database, $tableName, NULL, $alias);
+	public function createJoinedQuery($tableName, $alias, $joinCriterion) {
+		$rc = new QueryImpl($this->database, $tableName, NULL, $alias);
 		$this->addCriteria($rc, $joinCriterion);
 		return $rc;
 	}
 
 	/**
-	  * Add a new join criteria.
+	  * Create a new join query.
+	  * @deprecated
 	  */
-	public function addCriteria(Criteria $criteria, $joinCriterion) {
-		$this->subcriteria[] = array($criteria, $joinCriterion);
+	public function createCriteria($tableName, $alias, $joinCriterion) {
+		return $this->createJoinedQuery($tableName, $alias, $joinCriterion);
+	}
+
+	/**
+	  * Add a new join query.
+	  */
+	public function addJoinedQuery(Query $query, $joinCriterion) {
+		$this->subqueries[] = array($query, $joinCriterion);
 		return $this;
+	}
+
+	/**
+	  * Add a new join query.
+	  * @deprecated
+	  */
+	public function addCriteria(Query $query, $joinCriterion) {
+		return $this->addJoinedQuery($query, $joinCriterion);
 	}
 
 	/**
@@ -96,7 +112,6 @@ class CriteriaImpl implements Criteria {
 	  */
 	public function list($throwException = FALSE) {
 		$sql = $this->getSelectSql();
-		\TgLog\Log::debug('criteriaQuery: '.$sql);
 		$rc = $this->database->queryList($sql, $this->resultClassName);
 		if ($this->hasError() && $throwException) {
 			throw new \Exception('Database error when querying: '.$this->error());
@@ -109,7 +124,6 @@ class CriteriaImpl implements Criteria {
 	  */
 	public function first($throwException = FALSE) {
 		$sql = $this->getSelectSql();
-		\TgLog\Log::debug('criteriaQuery: '.$sql);
 		$rc = $this->database->querySingle($sql, $this->resultClassName);
 		if ($this->hasError() && $throwException) {
 			throw new \Exception('Database error when querying: '.$this->error());
@@ -122,7 +136,6 @@ class CriteriaImpl implements Criteria {
 	 */
 	public function save($fields, $throwException = FALSE) {
 		$sql = $this->getUpdateSql($fields);
-		\TgLog\Log::debug('criteriaQuery: '.$sql);
 		$rc = $this->database->query($sql);
 		if ((($rc === FALSE) || $this->hasError()) && $throwException) {
 			throw new \Exception('Database error when updating: '.$this->error());
@@ -135,7 +148,6 @@ class CriteriaImpl implements Criteria {
 	 */
 	public function delete($throwException = FALSE) {
 		$sql = $this->getDeleteSql();
-		\TgLog\Log::debug('criteriaQuery: '.$sql);
 		$rc = $this->database->query($sql);
 		if ((($rc === FALSE) || $this->hasError()) && $throwException) {
 			throw new \Exception('Database error when deleting: '.$this->error());
@@ -245,10 +257,10 @@ class CriteriaImpl implements Criteria {
 
 	protected function getJoinClause() {
 	    $rc = NULL;
-	    if (count($this->subcriteria) > 0) {
+	    if (count($this->subqueries) > 0) {
         	$rc = '';
-        	foreach ($this->subcriteria AS list($criteria, $joinCriterion)) {
-        		$rc .= ' INNER JOIN '.$criteria->getFromClause().' ON '.$joinCriterion->toSqlString($this, $criteria);
+        	foreach ($this->subqueries AS list($query, $joinCriterion)) {
+        		$rc .= ' INNER JOIN '.$query->getFromClause().' ON '.$joinCriterion->toSqlString($this, $query);
         	}
 	    }
 		return $rc;
@@ -268,12 +280,12 @@ class CriteriaImpl implements Criteria {
 			}
 		}
 
-		// Add subcriteria where clauses
-		foreach ($this->subcriteria AS list($criteria, $joinCriterion)) {
-			foreach ($criteria->criterions AS $criterion) {
+		// Add subquery where clauses
+		foreach ($this->subqueries AS list($query, $joinCriterion)) {
+			foreach ($query->criterions AS $criterion) {
 				if ($rc != NULL) $rc .= ' AND ';
 				else $rc = '';
-				$rc .= '('.$criterion->toSqlString($criteria, $this).')';
+				$rc .= '('.$criterion->toSqlString($query, $this).')';
 			}
 		}
 		return $rc;

@@ -32,9 +32,9 @@ final class OrderTest extends TestCase {
     }
                 
     protected function testSqlString(string $expected, Order $expr, $alias = NULL): void {
-        $criteria = TestHelper::createCriteria(NULL, NULL, $alias);
-        if ($criteria != NULL) {
-            $this->assertEquals($expected, $expr->toSqlString($criteria,$criteria));
+        $query = TestHelper::createQuery(NULL, NULL, $alias);
+        if ($query != NULL) {
+            $this->assertEquals($expected, $expr->toSqlString($query,$query));
         }
     }
 }

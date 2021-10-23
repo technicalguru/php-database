@@ -2,12 +2,12 @@
 
 namespace TgDatabase;
 
-use TgDatabase\Criteria;
-use TgDatabase\Criterion\CriteriaImpl;
+use TgDatabase\Query;
+use TgDatabase\Criterion\QueryImpl;
 use TgDatabase\Database;
 
 /**
- * Abstract test to ease database, DAO and Criteria creation.
+ * Abstract test to ease database, DAO and Query creation.
  * @author ralph
  *        
  */
@@ -32,9 +32,9 @@ class TestHelper {
         return self::$database;
     }
 
-    public static function createCriteria($tableName = 'dual', $modelClass = NULL, $alias = NULL): ?Criteria {
+    public static function createQuery($tableName = 'dual', $modelClass = NULL, $alias = NULL): ?Query {
         if (self::hasTestDatabase()) {
-            return new CriteriaImpl(self::getDatabase(), $tableName, $modelClass, $alias);
+            return new QueryImpl(self::getDatabase(), $tableName, $modelClass, $alias);
         }
         return NULL;
     }

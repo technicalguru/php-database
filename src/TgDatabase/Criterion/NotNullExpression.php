@@ -2,7 +2,7 @@
 
 namespace TgDatabase\Criterion;
 
-use TgDatabase\Criteria;
+use TgDatabase\Query;
 use TgDatabase\Criterion;
 
 class NotNullExpression implements Criterion {
@@ -13,12 +13,12 @@ class NotNullExpression implements Criterion {
 
 	/**
 	  * Render the SQL fragment.
-	  * @param Criteria $localCriteria   - local criteria object (e.g. subquery)
-	  * @param Criteria $overallCriteria - overall criteria object
+	  * @param Query $localQuery   - local criteria object (e.g. subquery)
+	  * @param Query $overallQuery - overall criteria object
 	  * @return string - the SQL fragment representing this criterion.
 	  */
-	public function toSqlString($localCriteria, $overallCriteria) {
-		return $overallCriteria->quoteName($localCriteria->getAlias(), $this->propertyName).' IS NOT NULL';
+	public function toSqlString($localQuery, $overallQuery) {
+		return $overallQuery->quoteName($localQuery->getAlias(), $this->propertyName).' IS NOT NULL';
 	}
 	
 }

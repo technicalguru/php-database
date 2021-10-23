@@ -140,12 +140,22 @@ class Database {
 	}
 
 	/**
-	  * Creates a new criteria object for this database.
+	  * Creates a new query object for this database.
 	  * @param string $tableName  - the table to be queried
 	  * @param string $modelClass - the result class in the query.
 	  */
+	public function createQuery($tableName, $modelClass = NULL, $alias = NULL) {
+		return new Criterion\QueryImpl($this, $tableName, $modelClass, $alias);
+	}
+
+	/**
+	  * Creates a new query object for this database.
+	  * @param string $tableName  - the table to be queried
+	  * @param string $modelClass - the result class in the query.
+	  * @Deprecated Use #createQuery instead
+	  */
 	public function createCriteria($tableName, $modelClass = NULL, $alias = NULL) {
-		return new Criterion\CriteriaImpl($this, $tableName, $modelClass, $alias);
+		return new Criterion\QueryImpl($this, $tableName, $modelClass, $alias);
 	}
 
 	/**
