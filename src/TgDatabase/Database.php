@@ -13,6 +13,8 @@ class Database {
 	protected $config;
 	/** The database connection */
 	public    $con;
+	/** Warned against use of old interface */
+	protected $deprecationWarning;
 
 	/**
 	 * Constructor.
@@ -21,6 +23,7 @@ class Database {
 	 */
 	public function __construct($config, \TgUtils\Auth\CredentialsProvider $provider = NULL) {
 		$this->config = $config;
+		$this->deprecationWarning = FALSE;
 		$this->connect($provider);
 	}
 
@@ -155,6 +158,7 @@ class Database {
 	  * @Deprecated Use #createQuery instead
 	  */
 	public function createCriteria($tableName, $modelClass = NULL, $alias = NULL) {
+		$this->warnDeprecation();
 		return new Criterion\QueryImpl($this, $tableName, $modelClass, $alias);
 	}
 
@@ -375,6 +379,16 @@ class Database {
 		$prefix = $this->config['tablePrefix'];
 		if (!$prefix) $prefix = '';
 		return str_replace('#__', $prefix, $s);
+	}
+
+	/**
+	 * Warns about deprecation. Once.
+	 */
+	protected function warnDeprecation() {
+		if (!$this->deprecationWarning) {
+			$this->deprecationWarning = TRUE;
+			\TgLog\Log::warn('Deprecated SQL interface used in: '.get_class($this));
+		}
 	}
 
 }

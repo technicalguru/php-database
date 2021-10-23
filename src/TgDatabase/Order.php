@@ -53,5 +53,24 @@ class Order {
 		return new Order($propertyName, FALSE);
 	}
 
+	/**
+	 * Creates the order object.
+	 * @param mixed $orders - string or order object (fieldname ASC/DESC)
+	 * @return object new Order object
+	 */
+	public static function toOrder($order) {
+		if (is_object($order)) return $order;
+
+		$s = trim($order);
+        $pos = strrpos($s, ' ');
+        if ($pos > 0) {
+            $lastWord = strtolower(substr($s, $pos+1));
+            if ($lastWord == 'desc') return Order::desc(substr($s, 0, $pos));
+            if ($lastWord == 'asc') return Order::asc(substr($s, 0, $pos));
+            return Order::asc($s);
+        }
+		return Order::asc($s);
+	}
+
 }
 

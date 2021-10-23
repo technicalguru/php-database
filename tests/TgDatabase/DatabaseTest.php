@@ -69,5 +69,12 @@ final class DatabaseTest extends TestCase {
             $this->assertEquals('phpunittest_table', $database->replaceTablePrefix('#__table'));
         }
     }
-                
+      
+    public function testCreateQuery(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            $query = $database->createQuery('aTable');
+            $this->assertEquals('SELECT * FROM `aTable`', $query->getSelectSql());
+        }
+    }
 }

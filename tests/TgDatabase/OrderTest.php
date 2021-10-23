@@ -37,4 +37,28 @@ final class OrderTest extends TestCase {
             $this->assertEquals($expected, $expr->toSqlString($query,$query));
         }
     }
+
+	public function testToOrderSimple(): void {
+		$dao = TestHelper::getDao();
+        if ($dao != NULL) {
+			$query = $dao->createQuery();
+			$this->assertEquals('`attr`', Order::toOrder('attr')->toSqlString($query, $query));
+		}
+	}
+
+	public function testToOrderAsc(): void {
+		$dao = TestHelper::getDao();
+        if ($dao != NULL) {
+			$query = $dao->createQuery();
+			$this->assertEquals('`attr`', Order::toOrder('attr asc')->toSqlString($query, $query));
+		}
+	}
+
+	public function testToOrderDesc(): void {
+		$dao = TestHelper::getDao();
+        if ($dao != NULL) {
+			$query = $dao->createQuery();
+			$this->assertEquals('`attr` DESC', Order::toOrder('attr desc')->toSqlString($query, $query));
+		}
+	}
 }

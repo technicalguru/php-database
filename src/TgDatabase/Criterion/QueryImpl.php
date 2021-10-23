@@ -199,11 +199,11 @@ class QueryImpl implements Query {
 		// UPDATE
 		$rc = 'UPDATE ';
 
+		// FROM table
+		$rc .= $this->getFromClause();
+
 		// SET
 		$rc .= ' SET '.$this->getSetClause($fields);
-
-		// FROM table
-		$rc .= ' FROM '.$this->getFromClause();
 
 		// WHERE clauses
 		$where = $this->getWhereClause();
@@ -216,7 +216,7 @@ class QueryImpl implements Query {
 
 	public function getDeleteSql() {
 		// DELETE
-		$rc = 'DELETE ';
+		$rc = 'DELETE';
 
 		// FROM table
 		$rc .= ' FROM '.$this->getFromClause();

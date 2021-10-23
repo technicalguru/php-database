@@ -103,12 +103,12 @@ class DAO {
 	public function createQuery($alias = NULL, $restrictions = array(), $order = array(), $startIndex = 0, $maxObjects = 0) {
 		$query = $this->database->createQuery($this->tableName, $this->modelClass, $alias);
 		// Add restrictions
-		$restrictions = self::toRestrictions($restrictions);
+		$restrictions = Restrictions::toRestrictions($restrictions);
 		if ($restrictions != NULL) $query->add($restrictions);
 
 		// Add orders
 		if (!is_array($order)) $order = array($order);
-		foreach ($order AS $o) $query->addOrder(self::toOrder($o));
+		foreach ($order AS $o) $query->addOrder(Order::toOrder($o));
 
 		// Limit result
 		if ($startIndex >= 0) $query->setFirstResult($startIndex);
@@ -344,39 +344,6 @@ class DAO {
 	}
 
 	/**
-	 * Creates an array of Restriction objects.
-	 * @param mixed  $restrictions - string or array of field clauses or Restriction objects - see README.md (optional)
-	 * @param string $combine      - the logical operator to combine the restrictions (optional, default is AND)
-	 * @return array of Restriction objects
-	 */
-	public static function toRestrictions($restrictions = NULL, $combine = 'AND') {
-		$rc = NULL;
-		if ($restrictions != NULL) {
-			if (is_array($restrictions)) {
-				$rc = strtolower($combine) == 'and' ? Restrictions::and() : Restrictions::or();
-				if (count($restrictions) > 0) {
-					foreach ($restrictions AS $key => $value) {
-						if (is_object($value) && is_a($value, 'TgDatabase\\Criterion')) {
-							$rc->add(§value);
-						} else if (is_string($value) && !is_string($key)) {
-							$rc->add(Restrictions::sql($value));
-						} else if (is_array($value)) {
-							$rc->add(self::toCriterion($value));
-						} else {
-							$rc->add(self::toCriterion($key, $value));
-						}
-					}
-				}
-			} else if (is_object($restrictions)) {
-				$rc = $restrictions;
-			} else if (is_string($restrictions)) {
-				$rc = Restrictions::sql($restrictions);
-			}
-		}
-		return $rc;
-	}
-
-	/**
 	 * Creates a single criterion from a field name, a value and an operator.
 	 * <p>Values will be quoted and escaped if required</p>
 	 * @param string $field - the field name
@@ -438,59 +405,4 @@ class DAO {
 		}
 	}
 
-	/**
-	 * Creates a restriction from a field name, a value and an operator.
-	 * @param string $field - the field name
-	 * @param mixed $value - the field value to check for (can be NULL, an array or a specific value - optional, default is NULL)
-	 * @param string $operator - criterion operator: one of =, !=, <=, >=, IN, NOT IN (optional, default is '=')
-	 * @return Restriction object
-	 */
-	public static function toCriterion($field, $value = NULL, $operator = NULL) {
-		$rc = NULL;
-		if (is_object($field)) {
-			$rc = $field;
-		} else {
-			if (is_array($field)) {
-				$value = $field[1];
-				if (count($field) > 2) $operator = $field[2];
-				$field = $field[0];
-			}
-			if ($operator == NULL) $operator = '=';
-			
-			if ($value === NULL) {
-				$rc = $operator == '='  ? Restrictions::isNull($field) : Restrictions::isNotNull($field);
-			} else {
-				switch (strtolower($operator)) {
-				case 'in':
-					if (is_array($value)) $rc = Restrictions::in($field, $value);
-					break;
-				case 'not in':
-					if (is_array($value)) $rc = Restrictions::notIn($field, $value);
-					break;
-				default:
-					$rc = new Criterion\SimpleExpression($field, $value, $operator);
-				}
-			}
-		}
-		return $rc;
-	}
-
-	/**
-	 * Creates the order object.
-	 * @param mixed $orders - string or order object (fieldname ASC/DESC)
-	 * @return object new Order object
-	 */
-	public static function toOrder($order) {
-		if (is_object($order)) return $order;
-
-		$s = trim($s);
-        $pos = strrpos($s, ' ');
-        if ($pos > 0) {
-            $lastWord = strtolower(substr($s, $pos+1));
-            if ($lastWord == 'desc') return Order::desc(substr($s, 0, $pos));
-            if ($lastWord == 'asc') return Order::asc(substr($s, 0, $pos));
-            return Order::asc($s);
-        }
-		return Order::asc($s);
-	}
 }

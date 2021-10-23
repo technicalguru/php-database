@@ -127,5 +127,45 @@ final class QueryImplTest extends TestCase {
         }
     }
     
-    // TODO We need to test update and delete SQL
+    public function testUpdateSql(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            $query = new QueryImpl($database, 'dual');
+            $fields = array(
+                'attr1' => 'value1',
+                'attr2' => 2,
+            );
+            $this->assertEquals("UPDATE `dual` SET `attr1`='value1', `attr2`=2", $query->getUpdateSql($fields));
+        }
+    }
+    
+    public function testUpdateWhereSql(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            $query = new QueryImpl($database, 'dual');
+            $query->add(Restrictions::eq('attr3', 'value3'));
+            $fields = array(
+                'attr1' => 'value1',
+                'attr2' => 2,
+            );
+            $this->assertEquals("UPDATE `dual` SET `attr1`='value1', `attr2`=2 WHERE (`attr3` = 'value3')", $query->getUpdateSql($fields));
+        }
+    }
+    
+    public function testDeleteSql(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            $query = new QueryImpl($database, 'dual');
+            $this->assertEquals("DELETE FROM `dual`", $query->getDeleteSql());
+        }
+    }
+    
+    public function testDeleteWhereSql(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            $query = new QueryImpl($database, 'dual');
+            $query->add(Restrictions::eq('attr3', 'value3'));
+            $this->assertEquals("DELETE FROM `dual` WHERE (`attr3` = 'value3')", $query->getDeleteSql());
+        }
+    }
 }
