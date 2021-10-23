@@ -333,18 +333,15 @@ class QueryImpl implements Query {
 		return $this->database->prepareValue($value);
 	}
 
+	/**
+	 * Quote the identifer (e.g. a table or attribute name).
+	 * If the identifier must be qualified by an alias then function takes two arguments.
+	 * @param mixed $aliasOrIdentifier - a string containing alias or identifier or an array containing both
+	 * @param mixed $identifier        - the identifier string for the alias or an array of alias and identifier.
+	 * @return the quoted identifier 
+	 */
 	public function quoteName($aliasOrIdentifier, $identifier = NULL) {
-		if ($identifier != NULL) {
-			if (is_array($identifier)) {
-				return $this->database->quoteName($identifier[0]).'.'.$this->database->quoteName($identifier[1]);
-			} else if ($aliasOrIdentifier != NULL) {
-			    return $this->database->quoteName($aliasOrIdentifier).'.'.$this->database->quoteName($identifier);
-			}
-			return $this->database->quoteName($identifier);
-		} else if (is_array($aliasOrIdentifier)) {
-			return $this->database->quoteName($aliasOrIdentifier[0]).'.'.$this->database->quoteName($aliasOrIdentifier[1]);
-		}
-		return $this->database->quoteName($aliasOrIdentifier);
+		return $this->database->quoteName($aliasOrIdentifier, $identifier);
 	}
 
 	/**

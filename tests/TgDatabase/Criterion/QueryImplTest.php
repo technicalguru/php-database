@@ -55,46 +55,6 @@ final class QueryImplTest extends TestCase {
         }
     }
     
-    public function testQuoteNameSimple(): void {
-        $database = TestHelper::getDatabase();
-        if ($database != NULL) {
-            $query = new QueryImpl($database, 'dual');
-            $this->assertEquals('`aName`', $query->quoteName(NULL, 'aName'));
-        }
-    }
-    
-    public function testQuoteNameSimple2(): void {
-        $database = TestHelper::getDatabase();
-        if ($database != NULL) {
-            $query = new QueryImpl($database, 'dual');
-            $this->assertEquals('`aName`', $query->quoteName('aName'));
-        }
-    }
-    
-    public function testQuoteNameQueryAlias(): void {
-        $database = TestHelper::getDatabase();
-        if ($database != NULL) {
-            $query = new QueryImpl($database, 'dual');
-            $this->assertEquals('`a`.`aName`', $query->quoteName('a', 'aName'));
-        }
-    }
-    
-    public function testQuoteNameExplicitAlias(): void {
-        $database = TestHelper::getDatabase();
-        if ($database != NULL) {
-            $query = new QueryImpl($database, 'dual');
-            $this->assertEquals('`b`.`aName`', $query->quoteName('a', array('b', 'aName')));
-        }
-    }
-    
-    public function testQuoteNameExplicitAlias2(): void {
-        $database = TestHelper::getDatabase();
-        if ($database != NULL) {
-            $query = new QueryImpl($database, 'dual');
-            $this->assertEquals('`b`.`aName`', $query->quoteName(array('b', 'aName')));
-        }
-    }
-    
     public function testPrepareValueString(): void {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {

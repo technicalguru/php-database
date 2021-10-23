@@ -7,7 +7,7 @@ A Data Access Object (DAO) base class is also provided to cater for object-relat
 interface will make it easier to find objects by ID, create and update them, using special data objects
 of your own.
 
-Finally, a Criteria API is provided to support a flexible, SQL dialect independent restriction writing.
+Finally, a Query API is provided to support a flexible, SQL dialect independent restriction writing.
 
 # License
 This project is licensed under [GNU LGPL 3.0](LICENSE.md). 
