@@ -7,10 +7,11 @@ namespace TgDatabase;
   */
 class Order {
 
-	public function __construct($propertyName, $ascending = TRUE) {
+	public function __construct($propertyName, $ascending = TRUE, $isSql = FALSE) {
 		$this->propertyName = $propertyName;
 		$this->ascending    = $ascending;
 		$this->ignoreCase   = FALSE;
+		$this->sql          = $isSql;
 	}
 
 	/*
@@ -31,16 +32,20 @@ class Order {
 		$lower = $this->ignoreCase;
 
 		$rc = '';
-		if ($lower) {
-			$rc .= 'LOWER(';
-		}
-		$rc .= $overallQuery->quoteName($localQuery->getAlias(), $this->propertyName);
-		if ($lower) {
-			$rc .= ')';
-		}
+		if (!$this->sql) {
+			if ($lower) {
+				$rc .= 'LOWER(';
+			}
+			$rc .= $overallQuery->quoteName($localQuery->getAlias(), $this->propertyName);
+			if ($lower) {
+				$rc .= ')';
+			}
 
-		if (!$this->ascending) {
-			$rc .= ' DESC';
+			if (!$this->ascending) {
+				$rc .= ' DESC';
+			}
+		} else {
+			$rc = $this->propertyName;
 		}
 		return $rc;
 	}
@@ -51,6 +56,10 @@ class Order {
 
 	public static function desc($propertyName) {
 		return new Order($propertyName, FALSE);
+	}
+
+	public static function sql($sql) {
+		return new Order($sql, TRUE, TRUE);
 	}
 
 	/**
@@ -67,9 +76,8 @@ class Order {
             $lastWord = strtolower(substr($s, $pos+1));
             if ($lastWord == 'desc') return Order::desc(substr($s, 0, $pos));
             if ($lastWord == 'asc') return Order::asc(substr($s, 0, $pos));
-            return Order::asc($s);
         }
-		return Order::asc($s);
+		return Order::sql($s);
 	}
 
 }
