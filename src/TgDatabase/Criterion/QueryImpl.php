@@ -6,6 +6,7 @@ use TgDatabase\Query;
 use TgDatabase\Criterion;
 use TgDatabase\Order;
 use TgDatabase\Projection;
+use TgDatabase\Projections;
 
 
 class QueryImpl implements Query {
@@ -16,11 +17,25 @@ class QueryImpl implements Query {
 		$this->resultClassName = $resultClassName;
 		$this->alias           = $alias;
 		$this->projection      = NULL;
-		$this->subqueries     = array();
+		$this->subqueries      = array();
 		$this->criterions      = array();
 		$this->orders          = array();
 		$this->firstResult     = -1;
 		$this->maxResults      = -1;
+	}
+
+	/**
+	 * Clone this query.
+	 */
+	public function clone() {
+		$rc = new QueryImpl($this->database, $this->tableName, $this->resultClassName, $this->alias);
+		$rc->projection      = $this->projection;
+		$rc->subqueries      = $this->subqueries;
+		$rc->criterions      = $this->criterions;
+		$rc->orders          = $this->orders;
+		$rc->firstResult     = -1;
+		$rc->maxResults      = -1;
+		return $rc;
 	}
 
 	/**
@@ -117,6 +132,21 @@ class QueryImpl implements Query {
 			throw new \Exception('Database error when querying: '.$this->error());
 		}
 		return $rc;
+	}
+
+	/**
+	 * Count the results.
+	 */
+	public function count($throwException = FALSE) {
+		$query  = $this->clone()->setProjection(Projections::alias(Projections::rowCount(), 'cnt'));
+		$record = $query->first();
+		if ($query->hasError()) {
+			if ($throwException) {
+				throw new \Exception('Database error when querying: '.$this->error());
+			}
+			return 0;
+		}
+		return $record->cnt;
 	}
 
 	/**
@@ -237,7 +267,7 @@ class QueryImpl implements Query {
 		return $this->getSelectSql();
 	}
 
-	protected function getSelectClause() {
+	public function getSelectClause() {
 		$rc = '';
 		if ($this->projection != NULL) {
 			$rc .= $this->projection->toSqlString($this, $this);
@@ -249,13 +279,13 @@ class QueryImpl implements Query {
 		return $rc;
 	}
 
-	protected function getFromClause() {
+	public function getFromClause() {
 		$rc = $this->quoteName($this->tableName);
 		if ($this->alias != NULL) $rc .= ' AS '.$this->quoteName($this->alias);
 		return $rc;
 	}
 
-	protected function getJoinClause() {
+	public function getJoinClause() {
 	    $rc = NULL;
 	    if (count($this->subqueries) > 0) {
         	$rc = '';
@@ -266,11 +296,11 @@ class QueryImpl implements Query {
 		return $rc;
 	}
 
-	protected function getGroupByClause() {
+	public function getGroupByClause() {
 		return NULL;
 	}
 
-	protected function getWhereClause() {
+	public function getWhereClause() {
 		$rc = NULL;
 		if (count($this->criterions) > 0) {
 			foreach ($this->criterions AS $criterion) {
@@ -291,7 +321,7 @@ class QueryImpl implements Query {
 		return $rc;
 	}
 
-	protected function getOrderByClause() {
+	public function getOrderByClause() {
 		$rc = NULL;
 		if (count($this->orders) > 0) {
 			$rc = '';
@@ -305,7 +335,7 @@ class QueryImpl implements Query {
 		return $rc;
 	}
 
-	protected function getLimitClause() {
+	public function getLimitClause() {
 		$rc = NULL;
 		if ($this->maxResults > 0) {
 			$rc = $this->maxResults;

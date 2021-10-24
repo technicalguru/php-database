@@ -128,4 +128,16 @@ final class QueryImplTest extends TestCase {
             $this->assertEquals("DELETE FROM `dual` WHERE (`attr3` = 'value3')", $query->getDeleteSql());
         }
     }
+
+    public function testCount(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            if (TestHelper::createTestTable()) try {
+                $query = new QueryImpl($database, TestHelper::getTestTable());
+                $this->assertEquals(10, $query->count());
+            } finally {
+                TestHelper::deleteTestTable();
+            }
+        }
+    }
 }

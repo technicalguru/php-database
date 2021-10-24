@@ -65,6 +65,11 @@ interface Query {
 	public function list($throwException = FALSE);
 
 	/**
+	 * Count the results.
+	 */
+	public function count($throwException = FALSE);
+
+	/**
 	  * Queries the database and returns the first row.
 	  */
 	public function first($throwException = FALSE);

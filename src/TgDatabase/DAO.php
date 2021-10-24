@@ -167,10 +167,7 @@ class DAO {
 	 * @return int the number of objects matching the restrictions.
 	 */
 	public function count($restrictions = array()) {
-		$query = $this->createQuery(NULL, $restrictions)->setProjection(Projections::alias(Projections::rowCount(), 'cnt'));
-		$record = $query->first();
-		if ($query->hasError()) return 0;
-		return $record->cnt;
+		return $this->createQuery(NULL, $restrictions)->count();
 	}
 
 	/** 
