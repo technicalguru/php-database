@@ -71,7 +71,7 @@ $arr = $db->queryList('SELECT * FROM #__devtest', 'MyNamespace\\MyDataClass');
 $obj = $db->querySingle('SELECT * FROM #__devtest WHERE uid='.$uid, 'MyNamespace\\MyDataClass');
 ```
 
-## Inserting, Updating and deleting objects
+## Inserting, Updating and Deleting objects
 
 You can insert your own data classes or simply use `stdClass` objects or arrays:
 
@@ -172,7 +172,7 @@ $users = $dao->find(array('group' => 'admin', 'active' => 1), array('name', 'ema
 **Attention:** This way of describing restrictions is deprecated as of v1.3. `find()` and `findSingle()` now support 
 the new Query API. Please read the [QueryAPI](#Query API) chapter.
 
-## Creating, saving and deleting objects
+## Creating, Saving and Deleting objects
 
 ```
 // Create a new user
@@ -452,6 +452,57 @@ And it is possible to combine restrictions with `and()` and `or()`:
 $expr = Restrictions::or($expr1, $expr2, $expr3);
 ```
 
+## Sorting the result
+The `Order` class contains three static methods that produce according clauses:
+
+```
+// Ascending order
+$order1 = \TgDatabase\Order::asc('columnName1');
+
+// Descending order
+$order2 = \TgDatabase\Order::desc('columnName2');
+
+// Use plain SQL as given in argument
+$order3 = \TgDatabase\Order::sql('ANY_SQL_FUNCTION() ASC');
+
+```
+
+`asc()` and `desc()` will automatically respect aliases and quote the
+column names, whereas `sql()` simply uses the string given. 
+
+However, you can use another alias if required:
+
+```
+$order2 = \TgDatabase\Order::desc(array('b', 'columnFromJoinedTable'));
+```
+
+Finally add these objects to your query:
+
+```
+$query->addOrder($order1, $order2);
+$query->addOrder($order3);
+```
+
+## Getting the result
+That's the most easiest part:
+
+```
+$query->list();
+```
+
+You can set restrictions on the result:
+
+```
+$query->setFirstResult(10);
+$query->setMaxResults(20);
+```
+
+Or you expect a single row only:
+
+```
+$query->first();
+```
+
 ## Using Projections
 Basic projections - the aggregation of columns of different rows - are available:
 
@@ -489,24 +540,12 @@ And finally we apply the search condition for the author:
 $authors->add(Restrictions::like('name', 'A%'));
 ```
 
-## Getting the result
-That's the most easiest part:
+Another way of adding subqueries is directly via the main `Query` object:
 
 ```
-$query->list();
-```
-
-You can set restrictions on the result:
-
-```
-$query->setFirstResult(10);
-$query->setMaxResults(20);
-```
-
-Or you expect a single row only:
-
-```
-$query->first();
+$authors = $booksDAO->createQuery('a');
+$authors->createJoinedQuery('#__authors', 'b', Restrictions::eq(array('a','author'), array('b','uid')));
+$authors->add(Restrictions::like('name', 'A%'));
 ```
 
 ## Updating and deleting multiple objects

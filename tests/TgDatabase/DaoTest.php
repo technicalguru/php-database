@@ -23,7 +23,7 @@ final class DaoTest extends TestCase {
 		$dao = TestHelper::getDao();
 		if ($dao != NULL) {
 			$query = $dao->createQuery(NULL, array('attr1' => 'value1', 'attr2' => 'value2'), array('attr3', 'attr4 DESC'), 3, 100);
-            $this->assertEquals('SELECT * FROM `dual` WHERE ((`attr1` = \'value1\') AND (`attr2` = \'value2\')) ORDER BY `attr3`,`attr4` DESC LIMIT 100 OFFSET 3', $query->getSelectSql());
+            $this->assertEquals('SELECT * FROM `dual` WHERE ((`attr1` = \'value1\') AND (`attr2` = \'value2\')) ORDER BY attr3,attr4 DESC LIMIT 100 OFFSET 3', $query->getSelectSql());
 		}
     }
 
@@ -32,7 +32,7 @@ final class DaoTest extends TestCase {
 		$dao = TestHelper::getDao();
 		if ($dao != NULL) {
 			$query = $dao->createQuery('a', array('attr1' => 'value1', 'attr2' => 'value2'), array('attr3', 'attr4 DESC'), 3, 100);
-            $this->assertEquals('SELECT `a`.* FROM `dual` AS `a` WHERE ((`a`.`attr1` = \'value1\') AND (`a`.`attr2` = \'value2\')) ORDER BY `a`.`attr3`,`a`.`attr4` DESC LIMIT 100 OFFSET 3', $query->getSelectSql());
+            $this->assertEquals('SELECT `a`.* FROM `dual` AS `a` WHERE ((`a`.`attr1` = \'value1\') AND (`a`.`attr2` = \'value2\')) ORDER BY attr3,attr4 DESC LIMIT 100 OFFSET 3', $query->getSelectSql());
 		}
     }
 

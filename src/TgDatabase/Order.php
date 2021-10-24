@@ -69,15 +69,7 @@ class Order {
 	 */
 	public static function toOrder($order) {
 		if (is_object($order)) return $order;
-
-		$s = trim($order);
-        $pos = strrpos($s, ' ');
-        if ($pos > 0) {
-            $lastWord = strtolower(substr($s, $pos+1));
-            if ($lastWord == 'desc') return Order::desc(substr($s, 0, $pos));
-            if ($lastWord == 'asc') return Order::asc(substr($s, 0, $pos));
-        }
-		return Order::sql($s);
+		return Order::sql($order);
 	}
 
 }
