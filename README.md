@@ -9,6 +9,10 @@ them, using special data objects of your own.
 
 Finally, a [Query API](#query-api) is provided to support a flexible writing of restrictions - independant of any SQL dialect.
 
+Version 1.3 is the last major 1.x release and marks the migration release. Traditional SQL writing and Query API are supported
+simultanously. However, many traditional SQL methods are marked as deprecated, and they will be removed in release 2.0. 
+So you shall migrate to the new Query API early.
+
 # License
 This project is licensed under [GNU LGPL 3.0](LICENSE.md). 
 
