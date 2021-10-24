@@ -1,13 +1,13 @@
 # php-database
-A PHP library for accessing databases easily. The library provide a MySQL/MariaDB falavoured database object
-that abstracts many daily task in SQL writing, such as quoting, escaping, building SQL statement, WHERE
+A PHP library for accessing databases easily. The library provide a MySQL/MariaDB flavoured database object
+that abstracts many daily task in SQL writing, such as quoting, escaping, building SQL statements, WHERE
 clauses, error handling and so on.
 
-A Data Access Object (DAO) base class is also provided to cater for object-relational mapping tasks. The
-interface will make it easier to find objects by ID, create and update them, using special data objects
-of your own.
+A [Data Access Object (DAO)](#how-to-use-a-database-access-object-dao) base class is also provided to 
+cater for object-relational mapping tasks. The interface will make it easier to find objects by ID, create and update 
+them, using special data objects of your own.
 
-Finally, a Query API is provided to support a flexible writing of restrictions - independant of any SQL dialect.
+Finally, a [Query API](#query-api) is provided to support a flexible writing of restrictions - independant of any SQL dialect.
 
 # License
 This project is licensed under [GNU LGPL 3.0](LICENSE.md). 
@@ -123,6 +123,9 @@ And finally you can delete objects. You will need the table name and the WHERE c
 $db->delete('#__devtest', 'uid='.$uid);
 ```
 
+**Remark:** `update()`, `updateSingle()` and `delete()` now support the new [Query API](#query-api) for the
+WHERE condition.
+
 # How to use a Database Access Object (DAO)
 
 The low-level `Database` abstraction makes object-relational mappings already  simple. However,
@@ -170,7 +173,7 @@ $users = $dao->find(array('group' => 'admin', 'active' => 1), array('name', 'ema
 ```
 
 **Attention:** This way of describing restrictions is deprecated as of v1.3. `find()` and `findSingle()` now support 
-the new Query API. Please read the [QueryAPI](#Query API) chapter.
+the new Query API. Please read the [Query API](#query-api) chapter.
 
 ## Creating, Saving and Deleting objects
 
@@ -229,7 +232,7 @@ $users = $dao->find(array(
 ));
 ```
 **Attention:** This way of describing restrictions is deprecated as of v1.3. `find()` and `findSingle()` now support 
-the new Query API. Please read the [QueryAPI](#Query API) chapter.
+the new Query API. Please read the [Query API](#query-api) chapter.
 
 ## ORDER clauses in DAO interface
 
@@ -250,7 +253,7 @@ $users = $dao->find('', array('name DESC', 'email ASC'));
 Default order sequence is ascending (`ASC`) if not specified.
 
 **Attention:** This way of describing ordering is deprecated as of v1.3. `find()` and `findSingle()` now support 
-the new Query API. Please read the [QueryAPI](#Query API) chapter.
+the new Query API. Please read the [Query API](#query-api) chapter.
 
 ## Extending DAO
 
@@ -275,7 +278,7 @@ class Users extends DAO {
 ```
 
 **Attention:** This way of describing restrictions is deprecated as of v1.3. `find()` and `findSingle()` now support 
-the new Query API. Please read the [QueryAPI](#Query API) chapter.
+the new Query API. Please read the [Query API](#query-api) chapter.
 
 ## Using Data Objects with DAOs
 
