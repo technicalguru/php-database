@@ -331,6 +331,7 @@ class QueryImpl implements Query {
 				$rc .= $order->toSqlString($this, $this);
 				$first = FALSE;
 			}
+			if (trim($rc) == '') $rc = NULL;
 		}
 		return $rc;
 	}
