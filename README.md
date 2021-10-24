@@ -399,7 +399,7 @@ messages in your log.
 **Notice:** Don't worry when you were already using the v1.2 `Criteria` class. It is kept for compatibility
 in the 1.x versions (`Criteria` now inherits from `Query`). Starting with v2.0, this interface will be removed.
 
-**Disclaimer:** The Criteria API cannot yet produce `GROUP BY` clauses as they are more complex to build.
+**Disclaimer:** The Query API cannot yet produce `GROUP BY` clauses as they are more complex to build.
 It will be added later.
 
 ## Creating a Query
