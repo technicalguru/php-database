@@ -109,7 +109,10 @@ class DAO {
 
 		// Add orders
 		if (!is_array($order)) $order = array($order);
-		foreach ($order AS $o) $query->addOrder(Order::toOrder($o));
+		foreach ($order AS $o) {
+			$query->addOrder(Order::toOrder($o));
+			if (Order::$hasDeprecatedUse) $this->warnDeprecation();
+		}
 
 		// Limit result
 		if ($startIndex >= 0) $query->setFirstResult($startIndex);

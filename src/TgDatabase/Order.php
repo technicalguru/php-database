@@ -62,13 +62,18 @@ class Order {
 		return new Order($sql, TRUE, TRUE);
 	}
 
+	/** Warn about deprecated usage */
+	public static $hasDeprecatedUse = FALSE;
+
 	/**
 	 * Creates the order object.
 	 * @param mixed $orders - string or order object (fieldname ASC/DESC)
 	 * @return object new Order object
 	 */
 	public static function toOrder($order) {
+		self::$hasDeprecatedUse = FALSE;
 		if (is_object($order)) return $order;
+		self::$hasDeprecatedUse = TRUE;
 		return Order::sql($order);
 	}
 
