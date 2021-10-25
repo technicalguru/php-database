@@ -306,6 +306,7 @@ class Database {
 	public function update($table, $fields, $where) {
 		$query        = $this->createQuery($table);
 		$restrictions = Restrictions::toRestrictions($where);
+		if (Restrictions::$hasDeprecatedUse) $this->warnDeprecation();
 		if ($restrictions != NULL) $query->add($restrictions);
 		$rc = $query->save($fields);
 		if ($rc === FALSE) {
@@ -325,6 +326,7 @@ class Database {
 	public function delete($table, $where) {
 		$query        = $this->createQuery($table);
 		$restrictions = Restrictions::toRestrictions($where);
+		if (Restrictions::$hasDeprecatedUse) $this->warnDeprecation();
 		if ($restrictions != NULL) $query->add($restrictions);
 		$rc = $query->delete();
 		if ($rc === FALSE) {

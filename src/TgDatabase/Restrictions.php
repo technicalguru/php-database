@@ -186,6 +186,9 @@ class Restrictions {
 		return new SqlExpression($sql);
 	}
 
+	// Flag that warns about deprectaion
+	public static $hasDeprecatedUse = FALSE;
+
 	/**
 	 * Creates an array of Restriction objects.
 	 * @param mixed  $restrictions - string or array of field clauses or Restriction objects - see README.md (optional)
@@ -193,6 +196,7 @@ class Restrictions {
 	 * @return array of Restriction objects
 	 */
 	public static function toRestrictions($restrictions = NULL, $combine = 'AND') {
+		self::$hasDeprecatedUse = FALSE;
 		$rc = NULL;
 		if ($restrictions != NULL) {
 			if (is_array($restrictions)) {
@@ -231,6 +235,7 @@ class Restrictions {
 		if (is_object($field)) {
 			$rc = $field;
 		} else {
+			self::$hasDeprecatedUse = TRUE;
 			if (is_array($field)) {
 				$value = $field[1];
 				if (count($field) > 2) $operator = $field[2];

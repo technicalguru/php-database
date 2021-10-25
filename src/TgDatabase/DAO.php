@@ -104,6 +104,7 @@ class DAO {
 		$query = $this->database->createQuery($this->tableName, $this->modelClass, $alias);
 		// Add restrictions
 		$restrictions = Restrictions::toRestrictions($restrictions);
+		if (Restrictions::$hasDeprecatedUse) $this->warnDeprecation();
 		if ($restrictions != NULL) $query->add($restrictions);
 
 		// Add orders
