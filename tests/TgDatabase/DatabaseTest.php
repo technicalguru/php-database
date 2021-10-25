@@ -19,13 +19,41 @@ final class DatabaseTest extends TestCase {
         }
     }
         
-    public function testQuoteName(): void {
+    public function testQuoteNameSimple(): void {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {
-            $this->assertEquals('`aString`', $database->quoteName('aString'));
+            $this->assertEquals('`aName`', $database->quoteName(NULL, 'aName'));
         }
     }
-                
+    
+    public function testQuoteNameSimple2(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            $this->assertEquals('`aName`', $database->quoteName('aName'));
+        }
+    }
+    
+    public function testQuoteNameQueryAlias(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            $this->assertEquals('`a`.`aName`', $database->quoteName('a', 'aName'));
+        }
+    }
+    
+    public function testQuoteNameExplicitAlias(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            $this->assertEquals('`b`.`aName`', $database->quoteName('a', array('b', 'aName')));
+        }
+    }
+    
+    public function testQuoteNameExplicitAlias2(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            $this->assertEquals('`b`.`aName`', $database->quoteName(array('b', 'aName')));
+        }
+    }
+        
     public function testPrepareValueString(): void {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {
@@ -69,5 +97,72 @@ final class DatabaseTest extends TestCase {
             $this->assertEquals('phpunittest_table', $database->replaceTablePrefix('#__table'));
         }
     }
-                
+      
+    public function testCreateQuery(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            $query = $database->createQuery('aTable');
+            $this->assertEquals('SELECT * FROM `aTable`', $query->getSelectSql());
+        }
+    }
+
+    public function testUpdateCompatible(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            if (TestHelper::createTestTable()) try {
+                $tableName = TestHelper::getTestTable();
+                $fields = array(
+                    'attr1' => 'value11_updated',
+                );
+                $where = 'uid=1';
+                $rc = $database->update($tableName, $fields, $where);
+                $this->assertNotNull($rc);
+                $this->assertEquals(1, count($rc));
+                foreach ($fields AS $name => $value) {
+                    $this->assertEquals($value, $rc[0]->$name);
+                }
+            } finally {
+                TestHelper::deleteTestTable();
+            }
+        }
+    }
+
+    public function testUpdateSingleCompatible(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            if (TestHelper::createTestTable()) try {
+                $tableName = TestHelper::getTestTable();
+                $fields = array(
+                    'attr2' => 'value22_updated',
+                );
+                $where = 'uid=2';
+                $rc = $database->updateSingle($tableName, $fields, $where);
+                $this->assertNotNull($rc);
+                foreach ($fields AS $name => $value) {
+                    $this->assertEquals($value, $rc->$name);
+                }
+            } finally {
+                TestHelper::deleteTestTable();
+            }
+        }
+    }
+
+    public function testDeleteCompatible(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            if (TestHelper::createTestTable()) try {
+                $tableName = TestHelper::getTestTable();
+                $where = 'uid=1';
+                $rc = $database->delete($tableName, $where);
+                $this->assertTrue($rc !== FALSE);
+                $rc = $database->queryList('SELECT * FROM `'.$tableName.'`');
+                $this->assertNotNull($rc);
+                $this->assertEquals(9, count($rc));
+            } finally {
+                TestHelper::deleteTestTable();
+            }
+        }
+    }
+
+
 }

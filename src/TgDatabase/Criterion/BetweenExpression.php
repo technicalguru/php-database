@@ -2,7 +2,7 @@
 
 namespace TgDatabase\Criterion;
 
-use TgDatabase\Criteria;
+use TgDatabase\Query;
 use TgDatabase\Criterion;
 
 class BetweenExpression implements Criterion {
@@ -24,25 +24,25 @@ class BetweenExpression implements Criterion {
 
 	/**
 	  * Render the SQL fragment.
-	  * @param Criteria $localCriteria   - local criteria object (e.g. subquery)
-	  * @param Criteria $overallCriteria - overall criteria object
+	  * @param Query $localQuery   - local criteria object (e.g. subquery)
+	  * @param Query $overallQuery - overall criteria object
 	  * @return string - the SQL fragment representing this criterion.
 	  */
-	public function toSqlString($localCriteria, $overallCriteria) {
+	public function toSqlString($localQuery, $overallQuery) {
 		$lower = $this->ignoreCase && is_string($this->minValue) && is_string($this->maxValue);
 
 		$rc = '';
 		if ($lower) {
 			$rc .= 'LOWER(';
 		}
-		$rc .= $overallCriteria->quoteName($localCriteria->getAlias(), $this->propertyName);
+		$rc .= $overallQuery->quoteName($localQuery->getAlias(), $this->propertyName);
 		if ($lower) {
 			$rc .= ')';
 		}
 		$rc .= ' BETWEEN ';
-		$rc .= $overallCriteria->prepareValue($this->minValue, $lower);
+		$rc .= $overallQuery->prepareValue($this->minValue, $lower);
 		$rc .= ' AND ';
-		$rc .= $overallCriteria->prepareValue($this->maxValue, $lower);
+		$rc .= $overallQuery->prepareValue($this->maxValue, $lower);
 		return $rc;
 	}
 	

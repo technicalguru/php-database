@@ -13,6 +13,8 @@ class Database {
 	protected $config;
 	/** The database connection */
 	public    $con;
+	/** Warned against use of old interface */
+	protected $deprecationWarning;
 
 	/**
 	 * Constructor.
@@ -21,6 +23,7 @@ class Database {
 	 */
 	public function __construct($config, \TgUtils\Auth\CredentialsProvider $provider = NULL) {
 		$this->config = $config;
+		$this->deprecationWarning = FALSE;
 		$this->connect($provider);
 	}
 
@@ -85,12 +88,34 @@ class Database {
 	}
 
 	/**
-	 * Quotes a field or table name.
+	 * Quote the identifer (e.g. a table or attribute name).
+	 * If the identifier must be qualified by an alias then function takes two arguments.
+	 * @param mixed $aliasOrIdentifier - a string containing alias or identifier or an array containing both
+	 * @param mixed $identifier        - the identifier string for the alias or an array of alias and identifier.
+	 * @return the quoted identifier 
+	 */
+	public function quoteName($aliasOrIdentifier, $identifier = NULL) {
+		if ($identifier != NULL) {
+			if (is_array($identifier)) {
+				return $this->_quoteName($identifier[0]).'.'.$this->_quoteName($identifier[1]);
+			} else if ($aliasOrIdentifier != NULL) {
+			    return $this->_quoteName($aliasOrIdentifier).'.'.$this->_quoteName($identifier);
+			}
+			return $this->_quoteName($identifier);
+		} else if (is_array($aliasOrIdentifier)) {
+			return $this->_quoteName($aliasOrIdentifier[0]).'.'.$this->_quoteName($aliasOrIdentifier[1]);
+		}
+		return $this->_quoteName($aliasOrIdentifier);
+
+	}
+
+	/**
+	 * Quotes a simple field or table name.
 	 * <p>Field and table names shall always be quoted in backticks to avoid misinterpretation.</p>
 	 * @param string $s - name to be quoted
 	 * @return string the quoted string
 	 */
-	public function quoteName($s) {
+	protected function _quoteName($s) {
 		return '`'.$s.'`';
 	}
 
@@ -140,12 +165,23 @@ class Database {
 	}
 
 	/**
-	  * Creates a new criteria object for this database.
+	  * Creates a new query object for this database.
 	  * @param string $tableName  - the table to be queried
 	  * @param string $modelClass - the result class in the query.
 	  */
+	public function createQuery($tableName, $modelClass = NULL, $alias = NULL) {
+		return new Criterion\QueryImpl($this, $tableName, $modelClass, $alias);
+	}
+
+	/**
+	  * Creates a new query object for this database.
+	  * @param string $tableName  - the table to be queried
+	  * @param string $modelClass - the result class in the query.
+	  * @Deprecated Use #createQuery instead
+	  */
 	public function createCriteria($tableName, $modelClass = NULL, $alias = NULL) {
-		return new Criterion\CriteriaImpl($this, $tableName, $modelClass, $alias);
+		$this->warnDeprecation();
+		return new Criterion\QueryImpl($this, $tableName, $modelClass, $alias);
 	}
 
 	/**
@@ -264,27 +300,18 @@ class Database {
 	 * <p>All fields (for objects) or keys (for arrays) are used for the update.</p>
 	 * @param string $table - the table name (table prefix will be replaced)
 	 * @param mixed $fields - array or object with fields and their values of the update.
-	 * @param string $where - WHERE clause (without keyword) - shall not be empty!
+	 * @param mixed $where - WHERE clause (without keyword) or restrictions array - shall not be empty!
 	 * @return mixed list of updated rows or FALSE in case of an error.
 	 */
 	public function update($table, $fields, $where) {
-		$table = $this->replaceTablePrefix($table);
-		if (is_object($fields)) $fields = get_object_vars($fields);
-		$values = array();
-		foreach ($fields AS $k => $v) {
-			$value = $v;
-			if ($v === NULL) $value = 'NULL';
-			else $value = $this->prepareValue($v);
-			$values[] = '`'.$k.'`='.$value;
-		}
-		if (($where != NULL) && (trim($where) != '')) $where = ' WHERE '.$where;
-		$sql = 'UPDATE '.$table.' SET '.implode(', ', $values).$where;
-		Log::debug($sql);
-		$rc = $this->query($sql);
+		$query        = $this->createQuery($table);
+		$restrictions = Restrictions::toRestrictions($where);
+		if ($restrictions != NULL) $query->add($restrictions);
+		$rc = $query->save($fields);
 		if ($rc === FALSE) {
-			$this->logError($sql);
+			$this->logError($query->getUpdateSql($fields));
 		} else {
-			$rc = $this->queryList('SELECT * FROM '.$table.$where);
+			$rc = $query->list();
 		}
 		return $rc;
 	}
@@ -292,16 +319,16 @@ class Database {
 	/**
 	 * Deleted rows from a table.
 	 * @param string $table - the table name (table prefix will be replaced)
-	 * @param string $where - WHERE clause (without keyword) - must not be empty!
+	 * @param mixed $where - WHERE clause (without keyword) or restrictions array - MUST not be empty!
 	 * @return boolean TRUE or FALSE in case of an error.
 	 */
 	public function delete($table, $where) {
-		$table = $this->replaceTablePrefix($table);
-		$sql = 'DELETE FROM '.$table.' WHERE '.$where;
-		Log::debug($sql);
-		$rc = $this->query($sql);
+		$query        = $this->createQuery($table);
+		$restrictions = Restrictions::toRestrictions($where);
+		if ($restrictions != NULL) $query->add($restrictions);
+		$rc = $query->delete();
 		if ($rc === FALSE) {
-			$this->logError($sql);
+			$this->logError($query->getDeleteSql());
 		}
 		return $rc;
 	}
@@ -365,6 +392,16 @@ class Database {
 		$prefix = $this->config['tablePrefix'];
 		if (!$prefix) $prefix = '';
 		return str_replace('#__', $prefix, $s);
+	}
+
+	/**
+	 * Warns about deprecation. Once.
+	 */
+	protected function warnDeprecation() {
+		if (!$this->deprecationWarning) {
+			$this->deprecationWarning = TRUE;
+			\TgLog\Log::warn('Deprecated SQL interface used in: '.get_class($this));
+		}
 	}
 
 }

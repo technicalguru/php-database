@@ -2,7 +2,7 @@
 
 namespace TgDatabase\Criterion;
 
-use TgDatabase\Criteria;
+use TgDatabase\Query;
 use TgDatabase\Criterion;
 
 class LogicalExpression implements Criterion {
@@ -31,18 +31,18 @@ class LogicalExpression implements Criterion {
 
 	/**
 	  * Render the SQL fragment.
-	  * @param Criteria $localCriteria   - local criteria object (e.g. subquery)
-	  * @param Criteria $overallCriteria - overall criteria object
+	  * @param Query $localQuery   - local criteria object (e.g. subquery)
+	  * @param Query $overallQuery - overall criteria object
 	  * @return string - the SQL fragment representing this criterion.
 	  */
-	public function toSqlString($localCriteria, $overallCriteria) {
+	public function toSqlString($localQuery, $overallQuery) {
 		$rc = '';
 
 		foreach ($this->criterions AS $criterion) {
 			if (strlen($rc) > 0) {
 				$rc .= ' '.$this->op.' ';
 			}
-			$rc .= '('.$criterion->toSqlString($localCriteria, $overallCriteria).')';
+			$rc .= '('.$criterion->toSqlString($localQuery, $overallQuery).')';
 		}
 		return $rc;
 	}

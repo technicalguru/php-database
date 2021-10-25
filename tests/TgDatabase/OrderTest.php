@@ -30,11 +30,40 @@ final class OrderTest extends TestCase {
         $expr = Order::desc('aName')->ignoreCase();
         $this->testSqlString('LOWER(`aName`) DESC', $expr);
     }
-                
+
+    public function testOrderSql(): void {
+        $expr = Order::sql('RAND() ASC');
+        $this->testSqlString('RAND() ASC', $expr);
+    }
+            
     protected function testSqlString(string $expected, Order $expr, $alias = NULL): void {
-        $criteria = TestHelper::createCriteria(NULL, NULL, $alias);
-        if ($criteria != NULL) {
-            $this->assertEquals($expected, $expr->toSqlString($criteria,$criteria));
+        $query = TestHelper::createQuery(NULL, NULL, $alias);
+        if ($query != NULL) {
+            $this->assertEquals($expected, $expr->toSqlString($query,$query));
         }
     }
+
+	public function testToOrderSimple(): void {
+		$dao = TestHelper::getDao();
+        if ($dao != NULL) {
+			$query = $dao->createQuery();
+			$this->assertEquals('attr', Order::toOrder('attr')->toSqlString($query, $query));
+		}
+	}
+
+	public function testToOrderAsc(): void {
+		$dao = TestHelper::getDao();
+        if ($dao != NULL) {
+			$query = $dao->createQuery();
+			$this->assertEquals('attr asc', Order::toOrder('attr asc')->toSqlString($query, $query));
+		}
+	}
+
+	public function testToOrderDesc(): void {
+		$dao = TestHelper::getDao();
+        if ($dao != NULL) {
+			$query = $dao->createQuery();
+			$this->assertEquals('attr desc', Order::toOrder('attr desc')->toSqlString($query, $query));
+		}
+	}
 }
