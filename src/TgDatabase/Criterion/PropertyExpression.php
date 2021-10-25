@@ -2,7 +2,7 @@
 
 namespace TgDatabase\Criterion;
 
-use TgDatabase\Criteria;
+use TgDatabase\Query;
 use TgDatabase\Criterion;
 
 class PropertyExpression implements Criterion {
@@ -24,18 +24,18 @@ class PropertyExpression implements Criterion {
 
 	/**
 	  * Render the SQL fragment.
-	  * @param Criteria $localCriteria   - local criteria object (e.g. subquery)
-	  * @param Criteria $overallCriteria - overall criteria object
+	  * @param Query $localQuery   - local criteria object (e.g. subquery)
+	  * @param Query $overallQuery - overall criteria object
 	  * @return string - the SQL fragment representing this criterion.
 	  */
-	public function toSqlString($localCriteria, $overallCriteria) {
+	public function toSqlString($localQuery, $overallQuery) {
 		$lower = $this->ignoreCase;
 
 		$rc = '';
 		if ($lower) {
 			$rc .= 'LOWER(';
 		}
-		$rc .= $overallCriteria->quoteName($localCriteria->getAlias(), $this->propertyName1);
+		$rc .= $overallQuery->quoteName($localQuery->getAlias(), $this->propertyName1);
 		if ($lower) {
 			$rc .= ')';
 		}
@@ -43,7 +43,7 @@ class PropertyExpression implements Criterion {
 		if ($lower) {
 			$rc .= 'LOWER(';
 		}
-		$rc .= $overallCriteria->quoteName($localCriteria->getAlias(), $this->propertyName2);
+		$rc .= $overallQuery->quoteName($localQuery->getAlias(), $this->propertyName2);
 		if ($lower) {
 			$rc .= ')';
 		}

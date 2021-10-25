@@ -5,7 +5,7 @@ namespace TgDatabase\Criterion;
 use PHPUnit\Framework\TestCase;
 use TgDatabase\Restrictions;
 use TgDatabase\Criterion;
-use TgDatabase\Criteria;
+use TgDatabase\Query;
 use TgDatabase\TestHelper;
 
 /**
@@ -36,9 +36,9 @@ final class SimpleExpressionTest extends TestCase {
     }
     
     protected function testSqlString(string $expected, Criterion $expr, $alias = NULL): void {
-        $criteria = TestHelper::createCriteria(NULL, NULL, $alias);
-        if ($criteria != NULL) {
-            $this->assertEquals($expected, $expr->toSqlString($criteria,$criteria));
+        $query = TestHelper::createQuery(NULL, NULL, $alias);
+        if ($query != NULL) {
+            $this->assertEquals($expected, $expr->toSqlString($query,$query));
         }
     }
     

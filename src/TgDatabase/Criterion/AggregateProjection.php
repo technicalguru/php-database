@@ -3,7 +3,7 @@
 namespace TgDatabase\Criterion;
 
 use TgDatabase\Projection;
-use TgDatabase\Criteria;
+use TgDatabase\Query;
 
 class AggregateProjection implements Projection {
 
@@ -14,12 +14,12 @@ class AggregateProjection implements Projection {
 
 	/**
 	  * Render the SQL fragment.
-	  * @param Criteria $localCriteria   - local criteria object (e.g. subquery)
-	  * @param Criteria $overallCriteria - overall criteria object
+	  * @param Query $localQuery   - local criteria object (e.g. subquery)
+	  * @param Query $overallQuery - overall criteria object
 	  * @return string - the SQL fragment representing this criterion.
 	  */
-	public function toSqlString($localCriteria, $overallCriteria) {
-		return $this->functionName.'('.$overallCriteria->quoteName($localCriteria->getAlias(), $this->propertyName).')';
+	public function toSqlString($localQuery, $overallQuery) {
+		return $this->functionName.'('.$overallQuery->quoteName($localQuery->getAlias(), $this->propertyName).')';
 	}
 }
 

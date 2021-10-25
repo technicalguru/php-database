@@ -137,9 +137,142 @@ final class RestrictionsTest extends TestCase {
     }
         
     protected function testSqlString(string $expected, Criterion $expr, $alias = NULL): void {
-        $criteria = TestHelper::createCriteria(NULL, NULL, $alias);
-        if ($criteria != NULL) {
-            $this->assertEquals($expected, $expr->toSqlString($criteria,$criteria));
+        $query = TestHelper::createQuery(NULL, NULL, $alias);
+        if ($query != NULL) {
+            $this->assertEquals($expected, $expr->toSqlString($query,$query));
         }
     }
+
+	public function testArguments(): void {
+		$dao = TestHelper::getDao();
+        if ($dao != NULL) {
+			$query = $dao->createQuery();
+			$this->assertEquals('`attr` = \'value\'', Restrictions::toCriterion('attr', 'value')->toSqlString($query, $query));
+		}
+	}
+
+	public function testArgumentArray(): void {
+		$dao = TestHelper::getDao();
+        if ($dao != NULL) {
+			$query = $dao->createQuery();
+			$this->assertEquals('`attr` = \'value\'', Restrictions::toCriterion(array('attr', 'value'))->toSqlString($query, $query));
+		}
+	}
+
+	public function testOperatorArgument(): void {
+		$dao = TestHelper::getDao();
+        if ($dao != NULL) {
+			$query = $dao->createQuery();
+			$this->assertEquals('`attr` = \'value\'', Restrictions::toCriterion(array('attr', 'value', '='))->toSqlString($query, $query));
+		}
+	}
+
+	public function testNullCriterion(): void {
+		$dao = TestHelper::getDao();
+        if ($dao != NULL) {
+			$query = $dao->createQuery();
+			$this->assertEquals('`attr` IS NULL', Restrictions::toCriterion('attr', NULL)->toSqlString($query, $query));
+		}
+	}
+
+	public function testNotNullCriterion(): void {
+		$dao = TestHelper::getDao();
+        if ($dao != NULL) {
+			$query = $dao->createQuery();
+			$this->assertEquals('`attr` IS NOT NULL', Restrictions::toCriterion('attr', NULL, '!=')->toSqlString($query, $query));
+		}
+	}
+
+	public function testNeCriterion(): void {
+		$dao = TestHelper::getDao();
+        if ($dao != NULL) {
+			$query = $dao->createQuery();
+			$this->assertEquals('`attr` != \'value\'', Restrictions::toCriterion('attr', 'value', '!=')->toSqlString($query, $query));
+		}
+	}
+
+	public function testGtCriterion(): void {
+		$dao = TestHelper::getDao();
+        if ($dao != NULL) {
+			$query = $dao->createQuery();
+			$this->assertEquals('`attr` > \'value\'', Restrictions::toCriterion('attr', 'value', '>')->toSqlString($query, $query));
+		}
+	}
+
+	public function testGeCriterion(): void {
+		$dao = TestHelper::getDao();
+        if ($dao != NULL) {
+			$query = $dao->createQuery();
+			$this->assertEquals('`attr` >= \'value\'', Restrictions::toCriterion('attr', 'value', '>=')->toSqlString($query, $query));
+		}
+	}
+
+	public function testLtCriterion(): void {
+		$dao = TestHelper::getDao();
+        if ($dao != NULL) {
+			$query = $dao->createQuery();
+			$this->assertEquals('`attr` < \'value\'', Restrictions::toCriterion('attr', 'value', '<')->toSqlString($query, $query));
+		}
+	}
+
+	public function testLeCriterion(): void {
+		$dao = TestHelper::getDao();
+        if ($dao != NULL) {
+			$query = $dao->createQuery();
+			$this->assertEquals('`attr` <= \'value\'', Restrictions::toCriterion('attr', 'value', '<=')->toSqlString($query, $query));
+		}
+	}
+
+	public function testLikeCriterion(): void {
+		$dao = TestHelper::getDao();
+        if ($dao != NULL) {
+			$query = $dao->createQuery();
+			$this->assertEquals('`attr` LIKE \'value\'', Restrictions::toCriterion('attr', 'value', 'LIKE')->toSqlString($query, $query));
+		}
+	}
+
+	public function testInCriterion(): void {
+		$dao = TestHelper::getDao();
+        if ($dao != NULL) {
+			$query = $dao->createQuery();
+			$this->assertEquals('`attr` IN (\'value\')', Restrictions::toCriterion('attr', array('value'), 'IN')->toSqlString($query, $query));
+		}
+	}
+
+	public function testNotInCriterion(): void {
+		$dao = TestHelper::getDao();
+        if ($dao != NULL) {
+			$query = $dao->createQuery();
+			$this->assertEquals('`attr` NOT IN (\'value\')', Restrictions::toCriterion('attr', array('value'), 'NOT IN')->toSqlString($query, $query));
+		}
+	}
+
+	public function testAndRestrictions(): void {
+		$dao = TestHelper::getDao();
+        if ($dao != NULL) {
+			$query = $dao->createQuery();
+			$this->assertEquals(
+				'(`attr1` = \'value1\') AND (`attr2` != \'value2\')', 
+				Restrictions::toRestrictions(array(
+					array('attr1', 'value1'),
+					array('attr2', 'value2', '!='),
+				), 'and')
+				->toSqlString($query, $query));
+		}
+	}
+
+	public function testOrRestrictions(): void {
+		$dao = TestHelper::getDao();
+        if ($dao != NULL) {
+			$query = $dao->createQuery();
+			$this->assertEquals(
+				'(`attr1` = \'value1\') OR (`attr2` != \'value2\')', 
+				Restrictions::toRestrictions(array(
+					array('attr1', 'value1'),
+					array('attr2', 'value2', '!='),
+				), 'or')
+				->toSqlString($query, $query));
+		}
+	}
+
 }
