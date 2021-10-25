@@ -2,7 +2,7 @@
 
 namespace TgDatabase\Criterion;
 
-use TgDatabase\Query;
+use TgDatabase\Criteria;
 use TgDatabase\Criterion;
 
 class NotInExpression implements Criterion {
@@ -23,18 +23,18 @@ class NotInExpression implements Criterion {
 
 	/**
 	  * Render the SQL fragment.
-	  * @param Query $localQuery   - local criteria object (e.g. subquery)
-	  * @param Query $overallQuery - overall criteria object
+	  * @param Criteria $localCriteria   - local criteria object (e.g. subquery)
+	  * @param Criteria $overallCriteria - overall criteria object
 	  * @return string - the SQL fragment representing this criterion.
 	  */
-	public function toSqlString($localQuery, $overallQuery) {
+	public function toSqlString($localCriteria, $overallCriteria) {
 		$lower = $this->ignoreCase;
 
 		$rc = '';
 		if ($lower) {
 			$rc .= 'LOWER(';
 		}
-		$rc .= $overallQuery->quoteName($localQuery->getAlias(), $this->propertyName);
+		$rc .= $overallCriteria->quoteName($localCriteria->getAlias(), $this->propertyName);
 		if ($lower) {
 			$rc .= ')';
 		}
@@ -42,7 +42,7 @@ class NotInExpression implements Criterion {
 		$values = '';
 		foreach ($this->values AS $value) {
 			if (strlen($values) > 0) $values .= ',';
-			$values .= $overallQuery->prepareValue($value, $lower);
+			$values .= $overallCriteria->prepareValue($value, $lower);
 		}
 		$rc .= $values.')';
 		return $rc;

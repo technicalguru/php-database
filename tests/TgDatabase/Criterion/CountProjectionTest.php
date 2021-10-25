@@ -5,7 +5,7 @@ namespace TgDatabase\Criterion;
 use PHPUnit\Framework\TestCase;
 use TgDatabase\Projections;
 use TgDatabase\Projection;
-use TgDatabase\Query;
+use TgDatabase\Criteria;
 use TgDatabase\TestHelper;
 
 /**
@@ -26,9 +26,9 @@ final class CountProjectionTest extends TestCase {
     }
         
     protected function testSqlString(string $expected, Projection $expr, $alias = NULL): void {
-        $query = TestHelper::createQuery(NULL, NULL, $alias);
-        if ($query != NULL) {
-            $this->assertEquals($expected, $expr->toSqlString($query,$query));
+        $criteria = TestHelper::createCriteria(NULL, NULL, $alias);
+        if ($criteria != NULL) {
+            $this->assertEquals($expected, $expr->toSqlString($criteria,$criteria));
         }
     }
 }

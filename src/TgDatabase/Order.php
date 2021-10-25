@@ -3,15 +3,14 @@
 namespace TgDatabase;
 
 /**
-  * Represents an order imposed upon a Query result set.
+  * Represents an order imposed upon a Criteria result set.
   */
 class Order {
 
-	public function __construct($propertyName, $ascending = TRUE, $isSql = FALSE) {
+	public function __construct($propertyName, $ascending = TRUE) {
 		$this->propertyName = $propertyName;
 		$this->ascending    = $ascending;
 		$this->ignoreCase   = FALSE;
-		$this->sql          = $isSql;
 	}
 
 	/*
@@ -24,28 +23,24 @@ class Order {
 
 	/**
 	  * Render the SQL fragment.
-	  * @param Query $localQuery   - local criteria object (e.g. subquery)
-	  * @param Query $overallQuery - overall criteria object
+	  * @param Criteria $localCriteria   - local criteria object (e.g. subquery)
+	  * @param Criteria $overallCriteria - overall criteria object
 	  * @return string - the SQL fragment representing this criterion.
 	  */
-	public function toSqlString($localQuery, $overallQuery) {
+	public function toSqlString($localCriteria, $overallCriteria) {
 		$lower = $this->ignoreCase;
 
 		$rc = '';
-		if (!$this->sql) {
-			if ($lower) {
-				$rc .= 'LOWER(';
-			}
-			$rc .= $overallQuery->quoteName($localQuery->getAlias(), $this->propertyName);
-			if ($lower) {
-				$rc .= ')';
-			}
+		if ($lower) {
+			$rc .= 'LOWER(';
+		}
+		$rc .= $overallCriteria->quoteName($localCriteria->getAlias(), $this->propertyName);
+		if ($lower) {
+			$rc .= ')';
+		}
 
-			if (!$this->ascending) {
-				$rc .= ' DESC';
-			}
-		} else {
-			$rc = $this->propertyName;
+		if (!$this->ascending) {
+			$rc .= ' DESC';
 		}
 		return $rc;
 	}
@@ -56,20 +51,6 @@ class Order {
 
 	public static function desc($propertyName) {
 		return new Order($propertyName, FALSE);
-	}
-
-	public static function sql($sql) {
-		return new Order($sql, TRUE, TRUE);
-	}
-
-	/**
-	 * Creates the order object.
-	 * @param mixed $orders - string or order object (fieldname ASC/DESC)
-	 * @return object new Order object
-	 */
-	public static function toOrder($order) {
-		if (is_object($order)) return $order;
-		return Order::sql($order);
 	}
 
 }

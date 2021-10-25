@@ -1,17 +1,11 @@
 # php-database
-A PHP library for accessing databases easily. The library provide a MySQL/MariaDB flavoured database object
-that abstracts many daily task in SQL writing, such as quoting, escaping, building SQL statements, WHERE
+A PHP library for accessing databases easily. The library provide a MySQL/MariaDB falavoured database object
+that abstracts many daily task in SQL writing, such as quoting, escaping, building SQL statement, WHERE
 clauses, error handling and so on.
 
-A [Data Access Object (DAO)](#how-to-use-a-database-access-object-dao) base class is also provided to 
-cater for object-relational mapping tasks. The interface will make it easier to find objects by ID, create and update 
-them, using special data objects of your own.
-
-Finally, a [Query API](#query-api) is provided to support a flexible writing of restrictions - independant of any SQL dialect.
-
-Version 1.3 is the last major 1.x release and marks the migration release. Traditional SQL writing and Query API are supported
-simultanously. However, many traditional SQL methods are marked as deprecated, and they will be removed in release 2.0. 
-So you shall migrate to the new Query API early.
+A Data Access Object (DAO) base class is also provided to cate for object-relational mapping tasks. The
+interface will make it easier to find objects by ID, create and update them, using special data objects
+of your own.
 
 # License
 This project is licensed under [GNU LGPL 3.0](LICENSE.md). 
@@ -75,7 +69,7 @@ $arr = $db->queryList('SELECT * FROM #__devtest', 'MyNamespace\\MyDataClass');
 $obj = $db->querySingle('SELECT * FROM #__devtest WHERE uid='.$uid, 'MyNamespace\\MyDataClass');
 ```
 
-## Inserting, Updating and Deleting objects
+## Inserting, Updating and deleting objects
 
 You can insert your own data classes or simply use `stdClass` objects or arrays:
 
@@ -127,9 +121,6 @@ And finally you can delete objects. You will need the table name and the WHERE c
 $db->delete('#__devtest', 'uid='.$uid);
 ```
 
-**Remark:** `update()`, `updateSingle()` and `delete()` now support the new [Query API](#query-api) for the
-WHERE condition.
-
 # How to use a Database Access Object (DAO)
 
 The low-level `Database` abstraction makes object-relational mappings already  simple. However,
@@ -176,10 +167,7 @@ $user = $dao->findSingle(array('email' => $email));
 $users = $dao->find(array('group' => 'admin', 'active' => 1), array('name', 'email));
 ```
 
-**Attention:** This way of describing restrictions is deprecated as of v1.3. `find()` and `findSingle()` now support 
-the new Query API. Please read the [Query API](#query-api) chapter.
-
-## Creating, Saving and Deleting objects
+## Creating, saving and deleting objects
 
 ```
 // Create a new user
@@ -235,8 +223,6 @@ $users = $dao->find(array(
     array('active' , 1)
 ));
 ```
-**Attention:** This way of describing restrictions is deprecated as of v1.3. `find()` and `findSingle()` now support 
-the new Query API. Please read the [Query API](#query-api) chapter.
 
 ## ORDER clauses in DAO interface
 
@@ -255,9 +241,6 @@ $users = $dao->find('', array('name DESC', 'email ASC'));
 ```
 
 Default order sequence is ascending (`ASC`) if not specified.
-
-**Attention:** This way of describing ordering is deprecated as of v1.3. `find()` and `findSingle()` now support 
-the new Query API. Please read the [Query API](#query-api) chapter.
 
 ## Extending DAO
 
@@ -280,9 +263,6 @@ class Users extends DAO {
     }
 }   
 ```
-
-**Attention:** This way of describing restrictions is deprecated as of v1.3. `find()` and `findSingle()` now support 
-the new Query API. Please read the [Query API](#query-api) chapter.
 
 ## Using Data Objects with DAOs
 
@@ -320,8 +300,9 @@ Finally, we bring everything together. The last thing we need is a central locat
 for all our `DAO`s. Here comes the `DataModel`:
 
 ```
+
 // Setup the model
-$model = new \TgDatabase\DataModel($database);
+$model = new \TGDatabase\DataModel($database);
 $model->register('users',    $userDAO);
 $model->register('products', $productDAO);
 
@@ -363,72 +344,40 @@ $users = $myModel->get('users')->find();
 
 Imagine, how much error-proned code you would have to write yourself!
 
-# Using a DaoFactory
+# Criteria API
+Version 1.2 introduces a basic form of `Criteria` which gives you more freedom to express SQL conditions
+when searching for rows and objects. It is designed using the Hibernate ORM Criteria template. So much
+of the code may appear familiar to you.
 
-The `DataModel` can make use of a `DaoFactory`. Such factory will create DAOs lazily when
-requested by your application. Simply create your own instance of such a factory:
+The Criteria API was created additional to the Data Model and DAO API and enhances it. So you can still use
+the v1.0 way of searching objects while already starting the Criteria API. However, it is planned to
+replace the `queryList()` and `querySingle()` methods in `Database` as well as  `count()` and 
+`find()` methods in `DAO` by the Criteria API in next major versions. At the moment both APIs exist
+independently.
 
-```
-class MyFactory implements DaoFactory {
-
-    // code omitted for ease of understanding...
-
-    public function createDao($name) {
-        switch ($name) {
-            case 'users':    return new UserDAO($this->database);
-            case 'products': return new ProductDAO($this->database);
-        }
-        return NULL;
-    }
-}
-```
-...and use it...
-
-```
-$model = new \TgDatabase\DataModel($database, $myDaoFactory);
-```
-
-Now you don't need to overwrite the `init()` method of the `DataModel`.
-
-The use of a `DaoFactory` is recommended when you have many DAOs to manage and your application
-usually uses only a fraction of it. It also will decouple your Data Model from the DAOs.
-
-# Query API
-Version 1.3 introduces the `Query` which gives you more freedom to express SQL conditions
-when searching, updating or deleting objects. It is designed using the Hibernate ORM Criteria template. So much
-of the code may appear familiar to you. 
-
-The Query API was created in addition to the Data Model and DAO API and enhances it. So you can still use
-the v1.0 way of searching objects while already starting the Query API. However, it is planned to
-remove the old API way of describing restrictions and orderings. Watch out for deprecation warning
-messages in your log.
-
-**Notice:** Don't worry when you were already using the v1.2 `Criteria` class. It is kept for compatibility
-in the 1.x versions (`Criteria` now inherits from `Query`). Starting with v2.0, this interface will be removed.
-
-**Disclaimer:** The Query API cannot yet produce `GROUP BY` clauses as they are more complex to build.
+**Disclaimer:** The Criteria API cannot yet produce `GROUP BY` clauses as they are more complex to build.
 It will be added later.
 
-## Creating a Query
-Two ways exist: Creating a `Query` object from the `Database` object, or alternatively from the `DAO`
+## Creating a Criteria
+Two ways exist: Creating a `Criteria` object from the `Database` object, or alternatively from the `DAO`
 object:
 
 ```
 // From Database object
-$query = $database->createQuery('#__users');
+$criteria = $database->createCriteria('#__users');
  
 // From DAO object
-$query = $userDAO->createQuery();
+$criteria = $userDAO->createCriteria();
 ```
 
-You can define model classes (the objects returned from `SELECT` queries) and aliases when creating a `Query`:
+You can define model classes (the objects returned from `SELECT` queries) and aliases when creating a `Criteria`:
 
 ```
 // From Database object
-$query = $database->createQuery('#__users', 'MyNamespace\\User', 'a');
+$criteria = $database->createCriteria('#__users', 'MyNamespace\\User', 'a');
  
 // From DAO object
-$query = $userDAO->createQuery('a');
+$criteria = $userDAO->createCriteria('a');
 ```
 
 As the DAO already knows about the model class, there is no need to mention it when creating from a `DAO`.
@@ -437,12 +386,12 @@ The alias is assigned to the underlying table name and will be added automatical
 
 ## Using Restrictions
 Restrictions are expressions that can be used in `WHERE` clauses (and in `JOIN` - see below). The helper
-class `Restrictions` is there to create them:
+class `Restrictions` helps you to create them:
 
 ```
 $expr1 = Restrictions::eq('name', 'myUsername');
 $expr2 = Restrictions::isNotNull('email');
-$query->add($expr1, $expr);
+$criteria->add($expr1, $expr);
 ```
 
 The most common restrictions are provided: eq, ne, lt, gt, ge, le, like, isNull, isNotNull, between. You can also
@@ -450,7 +399,7 @@ use restrictions between two properties:
 
 ```
 // Check for equalitity of name and email of a user.
-$expr = Restrictions::eqProperty('name', 'email');
+$expr = Restrictions::eq('name', 'email');
 ```
 
 And it is possible to combine restrictions with `and()` and `or()`:
@@ -459,86 +408,35 @@ And it is possible to combine restrictions with `and()` and `or()`:
 $expr = Restrictions::or($expr1, $expr2, $expr3);
 ```
 
-## Sorting the result
-The `Order` class contains three static methods that produce according clauses:
-
-```
-// Ascending order
-$order1 = \TgDatabase\Order::asc('columnName1');
-
-// Descending order
-$order2 = \TgDatabase\Order::desc('columnName2');
-
-// Use plain SQL as given in argument
-$order3 = \TgDatabase\Order::sql('ANY_SQL_FUNCTION() ASC');
-
-```
-
-`asc()` and `desc()` will automatically respect aliases and quote the
-column names, whereas `sql()` simply uses the string given. 
-
-However, you can use another alias if required:
-
-```
-$order2 = \TgDatabase\Order::desc(array('b', 'columnFromJoinedTable'));
-```
-
-Finally add these objects to your query:
-
-```
-$query->addOrder($order1, $order2);
-$query->addOrder($order3);
-```
-
-## Getting the result
-That's the most easiest part:
-
-```
-$query->list();
-```
-
-You can set restrictions on the result:
-
-```
-$query->setFirstResult(10);
-$query->setMaxResults(20);
-```
-
-Or you expect a single row only:
-
-```
-$query->first();
-```
-
 ## Using Projections
 Basic projections - the aggregation of columns of different rows - are available:
 
 ```
 $proj = Projections::rowCount();
-$query->setProjection($proj);
+$criteria->setProjection($proj);
 ```
 
 You will find projections for: count, distinct, sum, avg, min, max. Please notice that
 the returned model class is always the `stdClass` when using projections.
 
-## Subqueries and JOINs
-This is most likely the biggest advance in using the Query API. The traditional API methods
-were not able to use subqueries when searching for objects depending on other tables.
+## Subcriteria and JOINs
+This is most likely the biggest advance in using the Criteria API. The traditional API methods
+were not able to use subcriteria when searching for objects depending from other tables.
 
 Let's assume you want to find all books in a database whose author name start with an A. 
-The main query comes from books as it is our desired model class to be returned:
+The main criteria comes from books then as it is our desired model class to be returned
 
 ```
-$query = $bookDAO->createQuery('a');
+$criteria = $bookDAO->createCriteria('a');
 ```
 
-Next we join the authors table and add it to the main query using the respective restriction
+Next we join the authors table and add it to the main criteria using the respective restriction
 to join them properly:
 
 ```
-$authors     = $authorDAO->createQuery('b');
+$authors     = $authorDAO->createCriteria('b');
 $restriction = Restrictions::eq(array('a','author'), array('b','uid'));
-$query->addJoinedQuery($authors, $restriction);
+$criteria->addCriteria($authors, $restriction);
 ```
 
 And finally we apply the search condition for the author:
@@ -547,55 +445,34 @@ And finally we apply the search condition for the author:
 $authors->add(Restrictions::like('name', 'A%'));
 ```
 
-Another way of adding subqueries is directly via the main `Query` object:
+## Getting the result
+That's the most easiest part:
 
 ```
-$authors = $booksDAO->createQuery('a');
-$authors->createJoinedQuery('#__authors', 'b', Restrictions::eq(array('a','author'), array('b','uid')));
-$authors->add(Restrictions::like('name', 'A%'));
+$criteria->list();
 ```
 
-## Updating and deleting multiple objects
-The `Query` object can also update and delete objects:
+You can set restrictions on the result:
 
 ```
-// Update
-$restrictions = Restrictions::eq('name', 'John Doe');
-$updates      = array('comment' => 'This is an unknown author');
-$dao->createQuery()->add($restrictions)->update($updates);
-
-// Delete
-$restrictions = Restrictions::eq('name', 'Jane Doe');
-$dao->createQuery()->add($restrictions)->delete();
-```
-
-## Useful methods 
-You might want to make use of some methods that will ease your code writing:
-
-```
-// Query the authors with specific name, starting with 10th row and a max of 20 authors:
-$query = $dao->createQuery('a', Restrictions::eq('name', 'John Doe'), Order::asc('uid'), 10, 20);
-
-// Count all records (before limiting the result):
-$count  = $query->count(); // returns e.g. 65
-$result = $query->list();  // returns 20 objects 
-
-// Count using the DAO
-$count  = $dao->count(Restrictions::eq('name', 'John Doe'));
+$criteria->setFirstResult(10);
+$criteria->setMaxResults(20);
 ```
 
 ## Advantages and Limitations
-The Query API will further ease searching objects in a database and return model classes, using more
+The Criteria API will further ease in searching object in a database and return model classes, using more
 complex expressions and restrictions. You will be able to dynamically apply restrictions depending on
 the requirements of your front-end users and your application. And you won't need the DAO once you 
-created the `Query` object. It is self-contained.
+created the `Criteria` object. It is self-contained.
 
 However, some limitations exist:
 
-' Query API supports basic use cases so far (searching objects with basic restrictions).
+' Criteria API supports basic use cases so far (searching objects with simple restrictions).
 * Only MySQL / MariaDB SQL dialect is produced (but can be extended to other dialects easily when you stick to the API).
-* GROUP BY clauses are not implemented yet
+* GROUP BY clauses are not implemented
 * Multiple projections are not yet supported (such as `SELECT MAX(name), MIN(name) FROM #__users`) - will be extended.
+* Criteria API is not yet built into DAOs to make it more exchangeable. This might break the DAO API and hence will 
+  be added in one of the next major versions.
 * A few of the limitations may be ovecome by using the `SqlExpression` and `SqlProjection` classes:
 
 ```
