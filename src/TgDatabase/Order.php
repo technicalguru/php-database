@@ -73,7 +73,9 @@ class Order {
 	public static function toOrder($order) {
 		self::$hasDeprecatedUse = FALSE;
 		if (is_object($order)) return $order;
-		self::$hasDeprecatedUse = TRUE;
+		// It is more complicated, basically commata "," shall not be in there 
+		// (but conflicts with parantheses and arguments
+		//self::$hasDeprecatedUse = TRUE;
 		return Order::sql($order);
 	}
 
