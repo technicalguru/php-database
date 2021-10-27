@@ -8,6 +8,7 @@ use TgDatabase\Criterion\RowCountProjection;
 use TgDatabase\Criterion\CountProjection;
 use TgDatabase\Criterion\AggregateProjection;
 use TgDatabase\Criterion\AliasedProjection;
+use TgDatabase\Criterion\MultiSelect;
 use TgDatabase\Criterion\SqlProjection;
 
 class Projections {
@@ -16,6 +17,18 @@ class Projections {
 		$rc = new PropertySelect($propertyName);
 		if ($alias != NULL) $rc = self::alias($rc, $alias);
 		return $rc;
+	}
+
+	public static function combineProperties(string ...$properties) {
+		$rc = new MultiSelect();
+		foreach ($properties AS $p) {
+			$rc->add(self::property($p));
+		}
+		return $rc;
+	}
+
+	public static function combine(SelectComponent ...$components) {
+		return new MultiSelect($components);
 	}
 
 	public static function distinct($projection) {
