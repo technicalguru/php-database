@@ -6,6 +6,7 @@ use TgDatabase\Query;
 use TgDatabase\Criterion;
 use TgDatabase\Order;
 use TgDatabase\Projection;
+use TgDatabase\SelectComponent;
 use TgDatabase\Projections;
 
 
@@ -58,7 +59,7 @@ class QueryImpl implements Query {
 	/**
 	  * Add a projection to the query.
 	  */
-	public function setProjection(Projection $projection) {
+	public function setProjection(SelectComponent $projection) {
 		$this->projection      = $projection;
 		$this->resultClassName = NULL;
 		return $this;

@@ -2,13 +2,13 @@
 
 namespace TgDatabase\Criterion;
 
-use TgDatabase\Projection;
+use TgDatabase\SelectComponent;
 use TgDatabase\Query;
 
-class AliasedProjection implements Projection {
+class AliasedProjection implements SelectComponent {
 
-	public function __construct($projection, $alias) {
-		$this->projection = $projection;
+	public function __construct($component, $alias) {
+		$this->component = $component;
 		$this->alias      = $alias;
 	}
 
@@ -19,7 +19,7 @@ class AliasedProjection implements Projection {
 	  * @return string - the SQL fragment representing this criterion.
 	  */
 	public function toSqlString($localQuery, $overallQuery) {
-		return $this->projection->toSqlString($localQuery, $overallQuery).' AS '.$overallQuery->quoteName($this->alias);
+		return $this->component->toSqlString($localQuery, $overallQuery).' AS '.$overallQuery->quoteName($this->alias);
 	}
 }
 
