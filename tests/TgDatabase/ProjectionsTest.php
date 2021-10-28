@@ -16,8 +16,8 @@ final class ProjectionsTest extends TestCase {
         $this->testSqlString('`aName`', $expr);
     }
         
-    public function testCombineProperties(): void {
-        $expr = Projections::combineProperties('aName1', 'aName2', 'aName3');
+    public function testProperties(): void {
+        $expr = Projections::properties('aName1', 'aName2', 'aName3');
         $this->testSqlString('`aName1`, `aName2`, `aName3`', $expr);
     }
         

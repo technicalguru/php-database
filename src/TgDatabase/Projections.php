@@ -19,7 +19,7 @@ class Projections {
 		return $rc;
 	}
 
-	public static function combineProperties(string ...$properties) {
+	public static function properties(string ...$properties) {
 		$rc = new MultiSelect();
 		foreach ($properties AS $p) {
 			$rc->add(self::property($p));

@@ -59,7 +59,7 @@ final class QueryImplTest extends TestCase {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {
             $query = new QueryImpl($database, 'dual');
-            $query->setColumns(Projections::combineProperties('column1', 'column2'));
+            $query->setColumns(Projections::properties('column1', 'column2'));
             $this->assertEquals('SELECT `column1`, `column2` FROM `dual`', $query->getSelectSql());
         }
     }
