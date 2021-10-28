@@ -17,7 +17,7 @@ class QueryImpl implements Query {
 		$this->tableName       = $tableName;
 		$this->resultClassName = $resultClassName;
 		$this->alias           = $alias;
-		$this->projection      = NULL;
+		$this->projections     = array();
 		$this->subqueries      = array();
 		$this->criterions      = array();
 		$this->orders          = array();
@@ -30,13 +30,22 @@ class QueryImpl implements Query {
 	 */
 	public function clone() {
 		$rc = new QueryImpl($this->database, $this->tableName, $this->resultClassName, $this->alias);
-		$rc->projection      = $this->projection;
+		$rc->projections     = $this->projections;
 		$rc->subqueries      = $this->subqueries;
 		$rc->criterions      = $this->criterions;
 		$rc->orders          = $this->orders;
 		$rc->firstResult     = -1;
 		$rc->maxResults      = -1;
 		return $rc;
+	}
+
+	/**
+	  * Resets the result class.
+	  * Useful when using #setColumns() as this method erases the result class.
+	  */
+	public function setResultClass(string $name) {
+		$this->resultClassName = $name;
+		return $this;
 	}
 
 	/**
@@ -57,12 +66,47 @@ class QueryImpl implements Query {
 	}
 
 	/**
-	  * Add a projection to the query.
+	  * Set projection for the query.
+	  * Attention! This class removes any result class name from the query. Use #setResultClass() after calling.
+	  * @deprecated Use #setColumns() instead
 	  */
-	public function setProjection(SelectComponent $projection) {
-		$this->projection      = $projection;
+	public function setProjection(SelectComponent ...$components) {
+		$this->projections = array();
+		$this->_addColumns($components);
 		$this->resultClassName = NULL;
 		return $this;
+	}
+
+	/**
+	  * Set select columns for the query.
+	  * Attention! This class removes any result class name from the query. Use #setResultClass() after calling.
+	  */
+	public function setColumns(SelectComponent ...$components) {
+		$this->projections = array();
+		$this->_addColumns($components);
+		$this->resultClassName = NULL;
+		return $this;
+	}
+
+	/**
+	  * Add select columns for the query.
+	  */
+	public function addColumns(SelectComponent ...$components) {
+		$this->_addColumns($components);
+		return $this;
+	}
+
+	/**
+	  * Internal function to flatten array structure.
+	  */
+	protected function _addColumns($components) {
+		if (is_array($components)) {
+			foreach ($components AS $c) {
+				$this->_addColumns($c);
+			}
+		} else {
+			if ($components != NULL) $this->projections[] = $components;
+		}
 	}
 
 	/**
@@ -270,14 +314,18 @@ class QueryImpl implements Query {
 
 	public function getSelectClause() {
 		$rc = '';
-		if ($this->projection != NULL) {
-			$rc .= $this->projection->toSqlString($this, $this);
+		if (($this->projections != NULL) && (count($this->projections) > 0)) {
+			$sql = array();
+			foreach ($this->projections AS $p) {
+				$sql[] = $p->toSqlString($this, $this);
+			}
+			$rc .= ' '.implode(', ', $sql);
 		} else if ($this->alias != NULL) {
 			$rc .= $this->quoteName($this->alias).'.*';
 		} else {
 			$rc .= '*';
 		}
-		return $rc;
+		return trim($rc);
 	}
 
 	public function getFromClause() {

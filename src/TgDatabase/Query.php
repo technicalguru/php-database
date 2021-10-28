@@ -10,6 +10,12 @@ namespace TgDatabase;
 interface Query {
 
 	/**
+	  * Resets the result class.
+	  * Useful when using #setColumns() as this method erases the result class.
+	  */
+	public function setResultClass(string $name);
+
+	/**
 	  * Add a restriction to constrain the results to be retrieved.
 	  * @return Query - this query for method chaining.
 	  */
@@ -21,9 +27,21 @@ interface Query {
 	public function addOrder(Order ...$order);
 
 	/**
-	  * Set a projection for the query.
+	  * Add select columns for the query.
 	  */
-	public function setProjection(Projection $projection);
+	public function addColumns(SelectComponent ...$components);
+
+	/**
+	  * Set select columns for the query.
+	  * Attention! This class removes any result class name from the query. Use #setResultClass() after calling.
+	  */
+	public function setColumns(SelectComponent ...$components);
+
+	/**
+	  * Add projections for the query.
+	  * @deprecated Use #setColumns()
+	  */
+	public function setProjection(SelectComponent ...$components);
 
 	/**
 	  * Set the index of the first result to be retrieved.
