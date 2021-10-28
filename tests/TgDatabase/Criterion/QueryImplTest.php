@@ -37,12 +37,39 @@ final class QueryImplTest extends TestCase {
         }
     }
     
-    public function testProjection(): void {
+    public function testSimpleProjection(): void {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {
             $query = new QueryImpl($database, 'dual');
-            $query->setProjection(Projections::rowCount());
-            $this->assertEquals('SELECT COUNT(*) FROM `dual`', $query->getSelectSql());
+            $query->setProjection(Projections::rowCount('cnt'));
+            $this->assertEquals('SELECT COUNT(*) AS `cnt` FROM `dual`', $query->getSelectSql());
+        }
+    }
+    
+    public function testSetColumns(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            $query = new QueryImpl($database, 'dual');
+            $query->setColumns(Projections::property('column1'), Projections::property('column2'));
+            $this->assertEquals('SELECT `column1`, `column2` FROM `dual`', $query->getSelectSql());
+        }
+    }
+    
+    public function testCombineColumns(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            $query = new QueryImpl($database, 'dual');
+            $query->setColumns(Projections::combineProperties('column1', 'column2'));
+            $this->assertEquals('SELECT `column1`, `column2` FROM `dual`', $query->getSelectSql());
+        }
+    }
+    
+    public function testAddColumns(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            $query = new QueryImpl($database, 'dual');
+            $query->addColumns(Projections::property('column1'))->addColumns(Projections::property('column2'));
+            $this->assertEquals('SELECT `column1`, `column2` FROM `dual`', $query->getSelectSql());
         }
     }
     
