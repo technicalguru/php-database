@@ -490,6 +490,40 @@ $query->addOrder($order1, $order2);
 $query->addOrder($order3);
 ```
 
+## Modifying the column list: columns and projections
+Query will return all columns of the queried table by default. However, you can modify
+the column list:
+
+```
+// Select myColumn only
+$query->addColumn(Projections::property('myColumn'));
+
+// Add another column
+$query->addColumn(Projections::property('anotherColumn'));
+```
+
+Please notice that the first call to `addColumn` will remove the `*` retrieval
+on the query. Any subsequent call will enhance the list. The same result can be
+achieved with:
+
+```
+$query->setColumns(Projections::property('myColumn'), Projections::property('anotherColumn'));
+```
+
+And there are some shortcuts:
+
+```
+// Variant 1: flexible argument list
+$query1->addColumn(Projections::property('myColumn'), Projections::property('anotherColumn'));
+
+// Variant 2: use #properties() method in Projections
+$query1->addColumn(Projections::properties('myColumn', 'anotherColumn'));
+```
+
+**Attention:** A call to `setColumns()` or `setProjection()` (deprecated alternative) will always remove
+the result class definition in the query object. This will ensure compatibility with previous versions.
+So you would need to call `setResultClass()` in case you want the query to return other classes than `stdClass`.
+
 ## Getting the result
 That's the most easiest part:
 
