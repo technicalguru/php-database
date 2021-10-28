@@ -319,13 +319,13 @@ class QueryImpl implements Query {
 			foreach ($this->projections AS $p) {
 				$sql[] = $p->toSqlString($this, $this);
 			}
-			$rc .= ' '.implode(', ', $sql);
+			$rc .= implode(', ', $sql);
 		} else if ($this->alias != NULL) {
 			$rc .= $this->quoteName($this->alias).'.*';
 		} else {
 			$rc .= '*';
 		}
-		return trim($rc);
+		return $rc;
 	}
 
 	public function getFromClause() {
