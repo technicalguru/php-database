@@ -29,19 +29,19 @@ interface Query {
 	/**
 	  * Add select columns for the query.
 	  */
-	public function addColumns(SelectComponent ...$components);
+	public function addColumns(Expression ...$components);
 
 	/**
 	  * Set select columns for the query.
 	  * Attention! This class removes any result class name from the query. Use #setResultClass() after calling.
 	  */
-	public function setColumns(SelectComponent ...$components);
+	public function setColumns(Expression ...$components);
 
 	/**
 	  * Add projections for the query.
 	  * @deprecated Use #setColumns()
 	  */
-	public function setProjection(SelectComponent ...$components);
+	public function setProjection(Expression ...$components);
 
 	/**
 	  * Set the index of the first result to be retrieved.

@@ -2,12 +2,12 @@
 
 namespace TgDatabase\Criterion;
 
-use TgDatabase\SelectComponent;
+use TgDatabase\Expression;
 use TgDatabase\Query;
 
-class MultiSelect implements SelectComponent {
+class MultiSelect implements Expression {
 
-	public function __construct(SelectComponent ...$components) {
+	public function __construct(Expression ...$components) {
 		if ((count($components) == 1) && is_array($components[0])) {
 			$this->components = $components[0];
 		} else {
@@ -18,7 +18,7 @@ class MultiSelect implements SelectComponent {
 	/**
 	 * Add another component in combination.
 	 */
-	public function add(SelectComponent ...$components) {
+	public function add(Expression ...$components) {
 		if ((count($components) == 1) && is_array($components[0])) {
 			$arr = $components[0];
 		} else {

@@ -7,6 +7,6 @@ namespace TgDatabase;
  * Built-in projection types are provided by the Projections factory class. This interface 
  * might be implemented by application classes that define custom projections. 
  */
-interface Projection extends SelectComponent {
+interface Projection extends Expression {
 
 }

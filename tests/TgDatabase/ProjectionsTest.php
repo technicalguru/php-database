@@ -101,7 +101,7 @@ final class ProjectionsTest extends TestCase {
         $this->testSqlString('MAX(`aName`) AS `anotherName`', $expr);
     }
         
-    protected function testSqlString(string $expected, SelectComponent $expr, $alias = NULL): void {
+    protected function testSqlString(string $expected, Expression $expr, $alias = NULL): void {
         $query = TestHelper::createQuery(NULL, NULL, $alias);
         if ($query != NULL) {
             $this->assertEquals($expected, $expr->toSqlString($query,$query));

@@ -27,7 +27,7 @@ class Projections {
 		return $rc;
 	}
 
-	public static function combine(SelectComponent ...$components) {
+	public static function combine(Expression ...$components) {
 		return new MultiSelect($components);
 	}
 

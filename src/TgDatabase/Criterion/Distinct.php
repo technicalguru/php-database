@@ -2,10 +2,10 @@
 
 namespace TgDatabase\Criterion;
 
-use TgDatabase\SelectComponent;
+use TgDatabase\Expression;
 use TgDatabase\Query;
 
-class Distinct implements SelectComponent {
+class Distinct implements Expression {
 
 	public function __construct($component) {
 		$this->component = $component;

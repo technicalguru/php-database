@@ -6,7 +6,7 @@ use TgDatabase\Query;
 use TgDatabase\Criterion;
 use TgDatabase\Order;
 use TgDatabase\Projection;
-use TgDatabase\SelectComponent;
+use TgDatabase\Expression;
 use TgDatabase\Projections;
 
 
@@ -70,7 +70,7 @@ class QueryImpl implements Query {
 	  * Attention! This class removes any result class name from the query. Use #setResultClass() after calling.
 	  * @deprecated Use #setColumns() instead
 	  */
-	public function setProjection(SelectComponent ...$components) {
+	public function setProjection(Expression ...$components) {
 		$this->projections = array();
 		$this->_addColumns($components);
 		$this->resultClassName = NULL;
@@ -81,7 +81,7 @@ class QueryImpl implements Query {
 	  * Set select columns for the query.
 	  * Attention! This class removes any result class name from the query. Use #setResultClass() after calling.
 	  */
-	public function setColumns(SelectComponent ...$components) {
+	public function setColumns(Expression ...$components) {
 		$this->projections = array();
 		$this->_addColumns($components);
 		$this->resultClassName = NULL;
@@ -91,7 +91,7 @@ class QueryImpl implements Query {
 	/**
 	  * Add select columns for the query.
 	  */
-	public function addColumns(SelectComponent ...$components) {
+	public function addColumns(Expression ...$components) {
 		$this->_addColumns($components);
 		return $this;
 	}

@@ -2,10 +2,10 @@
 
 namespace TgDatabase\Criterion;
 
-use TgDatabase\SelectComponent;
+use TgDatabase\Expression;
 use TgDatabase\Query;
 
-class PropertySelect implements SelectComponent {
+class PropertySelect implements Expression {
 
 	public function __construct($propertyName) {
 		$this->propertyName = $propertyName;
