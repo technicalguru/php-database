@@ -156,6 +156,31 @@ final class QueryImplTest extends TestCase {
         }
     }
 
+    public function testGroupBySql(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            $query = new QueryImpl($database, 'dual');
+            $query
+				->addColumns(Projections::property('attr1'), Projections::rowCount('cnt'))
+				->add(Restrictions::eq('attr3', 'value3'))
+				->addGroupBy(Projections::property('attr1'));
+            $this->assertEquals("SELECT `attr1`, COUNT(*) AS `cnt` FROM `dual` GROUP BY `attr1` WHERE (`attr3` = 'value3')", $query->getSelectSql());
+        }
+    }
+
+    public function testHavingSql(): void {
+        $database = TestHelper::getDatabase();
+        if ($database != NULL) {
+            $query = new QueryImpl($database, 'dual');
+            $query
+				->addColumns(Projections::property('attr1'), Projections::rowCount('cnt'))
+				->add(Restrictions::eq('attr3', 'value3'))
+				->addGroupBy(Projections::property('attr1'))
+				->addHaving(Restrictions::eq('attr1', 'value1'));
+            $this->assertEquals("SELECT `attr1`, COUNT(*) AS `cnt` FROM `dual` GROUP BY `attr1` HAVING (`attr1` = 'value1') WHERE (`attr3` = 'value3')", $query->getSelectSql());
+        }
+    }
+
     public function testCount(): void {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {

@@ -12,6 +12,7 @@ interface Query {
 	/**
 	  * Resets the result class.
 	  * Useful when using #setColumns() as this method erases the result class.
+	  * @return Query - this query for method chaining.
 	  */
 	public function setResultClass(string $name);
 
@@ -23,25 +24,41 @@ interface Query {
 
 	/**
 	  * Add an ordering to the result set.
+	  * @return Query - this query for method chaining.
 	  */
 	public function addOrder(Order ...$order);
 
 	/**
 	  * Add select columns for the query.
+	  * @return Query - this query for method chaining.
 	  */
-	public function addColumns(Expression ...$components);
+	public function addColumns(Expression ...$expressions);
 
 	/**
 	  * Set select columns for the query.
 	  * Attention! This class removes any result class name from the query. Use #setResultClass() after calling.
+	  * @return Query - this query for method chaining.
 	  */
-	public function setColumns(Expression ...$components);
+	public function setColumns(Expression ...$expressions);
 
 	/**
 	  * Add projections for the query.
+	  * @return Query - this query for method chaining.
 	  * @deprecated Use #setColumns()
 	  */
-	public function setProjection(Expression ...$components);
+	public function setProjection(Expression ...$expressions);
+
+	/**
+	  * Add group by column
+	  * @return Query - this query for method chaining.
+	  */
+	public function addGroupBy(Expression ...$expressions);
+
+	/**
+	  * Add a restriction to constrain the group by result.
+	  * @return Query - this query for method chaining.
+	  */
+	public function addHaving(Criterion ...$criterions);
 
 	/**
 	  * Set the index of the first result to be retrieved.
@@ -51,6 +68,7 @@ interface Query {
 
 	/**
 	  * Set a limit upon the number of rows to be retrieved. 
+	  * @return Query - this query for method chaining.
 	  * @return Query - this query for method chaining.
 	  */
 	public function setMaxResults(int $maxResults);
@@ -68,11 +86,13 @@ interface Query {
 
 	/**
 	  * Add a new join query.
+	  * @return Query - this query for method chaining.
 	  */
 	public function addJoinedQuery(Query $query, $joinCriterion);
 
 	/**
 	  * Add a new join query.
+	  * @return Query - this query for method chaining.
 	  * @deprecated Use #addJoinedQuery instead
 	  */
 	public function addCriteria(Query $query, $joinCriterion);

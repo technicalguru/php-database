@@ -406,9 +406,6 @@ messages in your log.
 **Notice:** Don't worry when you were already using the v1.2 `Criteria` class. It is kept for compatibility
 in the 1.x versions (`Criteria` now inherits from `Query`). Starting with v2.0, this interface will be removed.
 
-**Disclaimer:** The Query API cannot yet produce `GROUP BY` clauses as they are more complex to build.
-It will be added later.
-
 ## Creating a Query
 Two ways exist: Creating a `Query` object from the `Database` object, or alternatively from the `DAO`
 object:
@@ -603,6 +600,20 @@ $restrictions = Restrictions::eq('name', 'Jane Doe');
 $dao->createQuery()->add($restrictions)->delete();
 ```
 
+## GROUP BY and HAVING clauses
+The Query API allows to define grouping result sets and restricting the returned result with the HAVING clause:
+
+```
+// List the number of books that authors published whose names begin with 'John'
+$bookQuery
+	->setColumns(Projections::property('author'), Projections::rowCount('cnt'))
+	->addGroupBy(Projections::property('author'))
+	->addHaving(Restrictions::like('author', 'John%'))
+	->list();
+```
+
+Please notice that using `->count()` on such a query might produce unexpected results. This is still an unresolved issue.
+
 ## Useful methods 
 You might want to make use of some methods that will ease your code writing:
 
@@ -626,10 +637,8 @@ created the `Query` object. It is self-contained.
 
 However, some limitations exist:
 
-' Query API supports basic use cases so far (searching objects with basic restrictions).
+* Query API supports basic use cases so far (searching objects with basic restrictions).
 * Only MySQL / MariaDB SQL dialect is produced (but can be extended to other dialects easily when you stick to the API).
-* GROUP BY clauses are not implemented yet
-* Multiple projections are not yet supported (such as `SELECT MAX(name), MIN(name) FROM #__users`) - will be extended.
 * A few of the limitations may be ovecome by using the `SqlExpression` and `SqlProjection` classes:
 
 ```

@@ -17,8 +17,10 @@ class QueryImpl implements Query {
 		$this->tableName       = $tableName;
 		$this->resultClassName = $resultClassName;
 		$this->alias           = $alias;
-		$this->projections     = array();
+		$this->columns         = array();
 		$this->subqueries      = array();
+		$this->groupBy         = array();
+		$this->having          = array();
 		$this->criterions      = array();
 		$this->orders          = array();
 		$this->firstResult     = -1;
@@ -30,8 +32,10 @@ class QueryImpl implements Query {
 	 */
 	public function clone() {
 		$rc = new QueryImpl($this->database, $this->tableName, $this->resultClassName, $this->alias);
-		$rc->projections     = $this->projections;
+		$rc->columns         = $this->columns;
 		$rc->subqueries      = $this->subqueries;
+		$rc->groupBy         = $this->groupBy;
+		$rc->having          = $this->having;
 		$rc->criterions      = $this->criterions;
 		$rc->orders          = $this->orders;
 		$rc->firstResult     = -1;
@@ -70,26 +74,45 @@ class QueryImpl implements Query {
 	  * Attention! This class removes any result class name from the query. Use #setResultClass() after calling.
 	  * @deprecated Use #setColumns() instead
 	  */
-	public function setProjection(Expression ...$components) {
-		return call_user_func_array(array($this, 'setColumns'), $components);
+	public function setProjection(Expression ...$expressions) {
+		return call_user_func_array(array($this, 'setColumns'), $expressions);
 	}
 
 	/**
 	  * Set select columns for the query.
 	  * Attention! This class removes any result class name from the query. Use #setResultClass() after calling.
 	  */
-	public function setColumns(Expression ...$components) {
-		$this->projections = array();
-		return call_user_func_array(array($this, 'addColumns'), $components);
+	public function setColumns(Expression ...$expressions) {
+		$this->columns = array();
+		return call_user_func_array(array($this, 'addColumns'), $expressions);
 	}
 
 	/**
 	  * Add select columns for the query.
 	  */
-	public function addColumns(Expression ...$components) {
-		foreach ($components AS $c) {
-			if ($c != NULL) $this->projections[] = $c;
+	public function addColumns(Expression ...$expressions) {
+		foreach ($expressions AS $c) {
+			if ($c != NULL) $this->columns[] = $c;
 		}
+		return $this;
+	}
+
+	/**
+	  * Add group by columns for the query.
+	  */
+	public function addGroupBy(Expression ...$expressions) {
+		foreach ($expressions AS $c) {
+			if ($c != NULL) $this->groupBy[] = $c;
+		}
+		return $this;
+	}
+
+	/**
+	  * Add a restriction to constrain the group by result.
+	  * @return Query - this query for method chaining.
+	  */
+	public function addHaving(Criterion ...$criterions) {
+		foreach ($criterions AS $criterion) $this->having[] = $criterion;
 		return $this;
 	}
 
@@ -215,7 +238,7 @@ class QueryImpl implements Query {
 	}
 
 	public function getSelectSql() {
-		// SELECT projections
+		// SELECT columns
 		$rc = 'SELECT '.$this->getSelectClause();
 
 		// FROM table
@@ -227,10 +250,16 @@ class QueryImpl implements Query {
 		    $rc .= ' '.trim($join);
 		}
 		
-		// GROUP BY projection not implemented yet
+		// GROUP BY
 		$group = $this->getGroupByClause();
 		if ($group != NULL) {
-		    $rc .= ' '.$group;
+		    $rc .= ' GROUP BY '.$group;
+
+			// HAVING
+			$having = $this->getHavingClause();
+			if ($having != NULL) {
+				$rc .= ' HAVING '.$having;
+			}
 		}
 		
 		// WHERE clauses
@@ -298,9 +327,9 @@ class QueryImpl implements Query {
 
 	public function getSelectClause() {
 		$rc = '';
-		if (($this->projections != NULL) && (count($this->projections) > 0)) {
+		if (($this->columns != NULL) && (count($this->columns) > 0)) {
 			$sql = array();
-			foreach ($this->projections AS $p) {
+			foreach ($this->columns AS $p) {
 				$sql[] = $p->toSqlString($this, $this);
 			}
 			$rc .= implode(', ', $sql);
@@ -330,7 +359,27 @@ class QueryImpl implements Query {
 	}
 
 	public function getGroupByClause() {
-		return NULL;
+		$rc = NULL;
+		if (($this->groupBy != NULL) && (count($this->groupBy) > 0)) {
+			$sql = array();
+			foreach ($this->groupBy AS $p) {
+				$sql[] = $p->toSqlString($this, $this);
+			}
+			$rc = implode(', ', $sql);
+		}
+		return $rc;
+	}
+
+	public function getHavingClause() {
+		$rc = NULL;
+		if (count($this->having) > 0) {
+			foreach ($this->having AS $criterion) {
+				if ($rc != NULL) $rc .= ' AND ';
+				else $rc = '';
+				$rc .= '('.$criterion->toSqlString($this, $this).')';
+			}
+		}
+		return $rc;
 	}
 
 	public function getWhereClause() {
