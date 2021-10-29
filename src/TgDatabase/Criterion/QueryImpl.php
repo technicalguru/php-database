@@ -71,10 +71,7 @@ class QueryImpl implements Query {
 	  * @deprecated Use #setColumns() instead
 	  */
 	public function setProjection(Expression ...$components) {
-		$this->projections = array();
-		$this->_addColumns($components);
-		$this->resultClassName = NULL;
-		return $this;
+		return call_user_func_array(array($this, 'setColumns'), $components);
 	}
 
 	/**
@@ -83,30 +80,17 @@ class QueryImpl implements Query {
 	  */
 	public function setColumns(Expression ...$components) {
 		$this->projections = array();
-		$this->_addColumns($components);
-		$this->resultClassName = NULL;
-		return $this;
+		return call_user_func_array(array($this, 'addColumns'), $components);
 	}
 
 	/**
 	  * Add select columns for the query.
 	  */
 	public function addColumns(Expression ...$components) {
-		$this->_addColumns($components);
-		return $this;
-	}
-
-	/**
-	  * Internal function to flatten array structure.
-	  */
-	protected function _addColumns($components) {
-		if (is_array($components)) {
-			foreach ($components AS $c) {
-				$this->_addColumns($c);
-			}
-		} else {
-			if ($components != NULL) $this->projections[] = $components;
+		foreach ($components AS $c) {
+			if ($c != NULL) $this->projections[] = $c;
 		}
+		return $this;
 	}
 
 	/**
