@@ -25,7 +25,7 @@ final class CountProjectionTest extends TestCase {
         $this->testSqlString('COUNT(DISTINCT `aName`)', $expr);
     }
         
-    protected function testSqlString(string $expected, Projection $expr, $alias = NULL): void {
+    protected function testSqlString(string $expected, $expr, $alias = NULL): void {
         $query = TestHelper::createQuery(NULL, NULL, $alias);
         if ($query != NULL) {
             $this->assertEquals($expected, $expr->toSqlString($query,$query));

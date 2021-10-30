@@ -9,18 +9,23 @@ use TgDatabase\Query;
 use TgDatabase\TestHelper;
 
 /**
- * Tests the AggregateProjection.
+ * Tests the RowCountProjection.
  * @author ralph
  *
  */
-final class AggregateProjectionTest extends TestCase {
+final class PropertySelectTest extends TestCase {
     
     public function testSimple(): void {
-        $expr = Projections::max('aName');
-        $this->testSqlString('MAX(`aName`)', $expr);
+        $expr = Projections::property('aName');
+        $this->testSqlString('`aName`', $expr);
     }
         
-    protected function testSqlString(string $expected, Projection $expr, $alias = NULL): void {
+    public function testAliased(): void {
+        $expr = Projections::property('aName', 'anAlias');
+        $this->testSqlString('`aName` AS `anAlias`', $expr);
+    }
+        
+    protected function testSqlString(string $expected, $expr, $alias = NULL): void {
         $query = TestHelper::createQuery(NULL, NULL, $alias);
         if ($query != NULL) {
             $this->assertEquals($expected, $expr->toSqlString($query,$query));

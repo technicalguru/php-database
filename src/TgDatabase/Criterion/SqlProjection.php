@@ -3,9 +3,9 @@
 namespace TgDatabase\Criterion;
 
 use TgDatabase\Query;
-use TgDatabase\Projection;
+use TgDatabase\Expression;
 
-class SqlProjection implements Projection {
+class SqlProjection implements Expression {
 
 	public function __construct($sql) {
 		$this->sql = $sql;

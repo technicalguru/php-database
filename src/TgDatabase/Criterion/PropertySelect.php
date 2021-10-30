@@ -5,10 +5,10 @@ namespace TgDatabase\Criterion;
 use TgDatabase\Expression;
 use TgDatabase\Query;
 
-class Distinct implements Expression {
+class PropertySelect implements Expression {
 
-	public function __construct($component) {
-		$this->component = $component;
+	public function __construct($propertyName) {
+		$this->propertyName = $propertyName;
 	}
 
 	/**
@@ -18,7 +18,7 @@ class Distinct implements Expression {
 	  * @return string - the SQL fragment representing this criterion.
 	  */
 	public function toSqlString($localQuery, $overallQuery) {
-		return 'DISTINCT '.$this->component->toSqlString($localQuery, $overallQuery);
+		return $overallQuery->quoteName($localQuery->getAlias(), $this->propertyName);
 	}
 }
 

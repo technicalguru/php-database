@@ -1,5 +1,5 @@
 # php-database
-A PHP library for accessing databases easily. The library provide a MySQL/MariaDB flavoured database object
+A PHP library for accessing databases easily. This library provides a MySQL/MariaDB flavoured database object
 that abstracts many daily task in SQL writing, such as quoting, escaping, building SQL statements, WHERE
 clauses, error handling and so on.
 
@@ -67,7 +67,7 @@ $arr = $db->queryList('SELECT * FROM #__devtest');
 $obj = $db->querySingle('SELECT * FROM #__devtest WHERE uid='.$uid);
 ```
 
-The interface usually delivers `stdClass` objects by default. However, you can name
+The interface delivers `stdClass` objects by default. However, you can name
 your own data class so the data will be populated in such a class:
 
 ```
@@ -147,7 +147,7 @@ $dao = \TgDatabase\DAO($db, '#__users');
 The default constructor as above makes assumptions about your table:
 
 1. It always returns `stdClass` objects.
-1. It assumes that your table has an `int auto-increment` primary key that is names `uid`.
+1. It assumes that your table has an `int auto-increment` primary key that is named `uid`.
 
 However, you can tell `DAO` your specifics:
 
@@ -159,7 +159,8 @@ $dao = \TgDatabase\DAO($db, '#__users', 'MyNamespace\\User`);
 $dao = \TgDatabase\DAO($db, '#__users', 'MyNamespace\\User`, 'id');
 ```
 
-`DAO` can actually handle non-numeric primary keys. The usage is not recommended though.
+`DAO` can actually handle non-numeric primary keys. The usage is not recommended though as you need
+to create the primary keys yourself.
 
 ## Finding objects
 
@@ -191,12 +192,12 @@ $newUser->group    = 'webusers';
 $newUser->active   = 1;
 $newId = $dao->create($newUser);
 
-// Updating an existing user
+// Update an existing user
 $user = $dao->get($newId);
 $user->name = 'Jane Doe';
 $dao->save($user);
 
-// Deleting a user
+// Delete a user
 $dao->delete($user);
 // or
 $dao->delete($user->uid);
@@ -276,7 +277,7 @@ class Users extends DAO {
     }
     
     public function findByDepartment($department, $order = NULL) {
-        return $this->find(array('department' => $email), $order);
+        return $this->find(array('department' => $department), $order);
     }
 }   
 ```
@@ -286,7 +287,7 @@ the new Query API. Please read the [Query API](#query-api) chapter.
 
 ## Using Data Objects with DAOs
 
-As above mentioned, you can use your own data classes. There are actually no
+As mentioned above, you can use your own data classes. There are actually no
 restrictions other than the class needs a no-argument constructor. The main
 advantage is that this class can have additional methods that have some
 logic. You can even define additional attributes that will not be saved in
@@ -332,7 +333,7 @@ $products = $model->get('products')->find();
 Of course, a better idea is to encapsulate this in your own `DataModel` subclass:
 
 ```
-class MyDataModel extends \TGDatabase\DataModel {
+class MyDataModel extends \TgDatabase\DataModel {
 
     public function __construct($database) {
         parent::__construct($database);
@@ -406,9 +407,6 @@ messages in your log.
 **Notice:** Don't worry when you were already using the v1.2 `Criteria` class. It is kept for compatibility
 in the 1.x versions (`Criteria` now inherits from `Query`). Starting with v2.0, this interface will be removed.
 
-**Disclaimer:** The Query API cannot yet produce `GROUP BY` clauses as they are more complex to build.
-It will be added later.
-
 ## Creating a Query
 Two ways exist: Creating a `Query` object from the `Database` object, or alternatively from the `DAO`
 object:
@@ -442,7 +440,7 @@ class `Restrictions` is there to create them:
 ```
 $expr1 = Restrictions::eq('name', 'myUsername');
 $expr2 = Restrictions::isNotNull('email');
-$query->add($expr1, $expr);
+$query->where($expr1, $expr);
 ```
 
 The most common restrictions are provided: eq, ne, lt, gt, ge, le, like, isNull, isNotNull, between. You can also
@@ -486,9 +484,43 @@ $order2 = \TgDatabase\Order::desc(array('b', 'columnFromJoinedTable'));
 Finally add these objects to your query:
 
 ```
-$query->addOrder($order1, $order2);
-$query->addOrder($order3);
+$query->orderBy($order1, $order2);
+$query->orderBy($order3);
 ```
+
+## Modifying the column list: columns and projections
+Query will return all columns of the queried table by default. However, you can modify
+the column list:
+
+```
+// Select myColumn only
+$query->select(Projections::property('myColumn'));
+
+// Add another column
+$query->select(Projections::property('anotherColumn'));
+```
+
+Please notice that the first call to `select` will remove the `*` retrieval
+on the query. Any subsequent call will enhance the list. The same result can be
+achieved with:
+
+```
+$query->setSelect(Projections::property('myColumn'), Projections::property('anotherColumn'));
+```
+
+And there are some shortcuts:
+
+```
+// Variant 1: flexible argument list
+$query1->select(Projections::property('myColumn'), Projections::property('anotherColumn'));
+
+// Variant 2: use #properties() method in Projections
+$query1->select(Projections::properties('myColumn', 'anotherColumn'));
+```
+
+**Attention:** A call to `setSelect()` or `setProjection()` (deprecated alternative) will NOT remove
+the result class definition in the query object as done before. This breaks compatibility with previous versions.
+So you need to call `setResultClass(NULL)` to have `stdClass` returned.
 
 ## Getting the result
 That's the most easiest part:
@@ -515,11 +547,12 @@ Basic projections - the aggregation of columns of different rows - are available
 
 ```
 $proj = Projections::rowCount();
-$query->setProjection($proj);
+$query->select($proj);
 ```
 
 You will find projections for: count, distinct, sum, avg, min, max. Please notice that
-the returned model class is always the `stdClass` when using projections.
+the returned model class is not reset. You need to call `setResultClass(NULL)` to have 
+`stdClass` returned when using projections.
 
 ## Subqueries and JOINs
 This is most likely the biggest advance in using the Query API. The traditional API methods
@@ -538,21 +571,21 @@ to join them properly:
 ```
 $authors     = $authorDAO->createQuery('b');
 $restriction = Restrictions::eq(array('a','author'), array('b','uid'));
-$query->addJoinedQuery($authors, $restriction);
+$query->join($authors, $restriction);
 ```
 
 And finally we apply the search condition for the author:
 
 ```
-$authors->add(Restrictions::like('name', 'A%'));
+$authors->where(Restrictions::like('name', 'A%'));
 ```
 
 Another way of adding subqueries is directly via the main `Query` object:
 
 ```
 $authors = $booksDAO->createQuery('a');
-$authors->createJoinedQuery('#__authors', 'b', Restrictions::eq(array('a','author'), array('b','uid')));
-$authors->add(Restrictions::like('name', 'A%'));
+$authors->createJoin('#__authors', 'b', Restrictions::eq(array('a','author'), array('b','uid')));
+$authors->where(Restrictions::like('name', 'A%'));
 ```
 
 ## Updating and deleting multiple objects
@@ -562,12 +595,27 @@ The `Query` object can also update and delete objects:
 // Update
 $restrictions = Restrictions::eq('name', 'John Doe');
 $updates      = array('comment' => 'This is an unknown author');
-$dao->createQuery()->add($restrictions)->update($updates);
+$dao->createQuery()->where($restrictions)->update($updates);
 
 // Delete
 $restrictions = Restrictions::eq('name', 'Jane Doe');
-$dao->createQuery()->add($restrictions)->delete();
+$dao->createQuery()->where($restrictions)->delete();
 ```
+
+## GROUP BY and HAVING clauses
+The Query API allows to define grouping result sets and restricting the returned result with the HAVING clause:
+
+```
+// List the number of books that authors published whose names begin with 'John'
+$bookQuery
+	->select(Projections::property('author'), Projections::rowCount('cnt'))
+	->groupBy(Projections::property('author'))
+	->having(Restrictions::like('author', 'John%'))
+	->setResultClass(NULL)
+	->list();
+```
+
+Please notice that using `->count()` on such a query might produce unexpected results. This is still an unresolved issue.
 
 ## Useful methods 
 You might want to make use of some methods that will ease your code writing:
@@ -585,17 +633,15 @@ $count  = $dao->count(Restrictions::eq('name', 'John Doe'));
 ```
 
 ## Advantages and Limitations
-The Query API will further ease searching objects in a database and return model classes, using more
-complex expressions and restrictions. You will be able to dynamically apply restrictions depending on
-the requirements of your front-end users and your application. And you won't need the DAO once you 
+The Query API further eases searching objects in a database and return model classes, using more
+complex expressions and restrictions. You are able to dynamically apply restrictions depending on
+the requirements of your front-end users and your application. And you don't need the DAO once you 
 created the `Query` object. It is self-contained.
 
 However, some limitations exist:
 
-' Query API supports basic use cases so far (searching objects with basic restrictions).
+* Query API supports basic use cases so far (searching objects with basic restrictions, updates, deleting).
 * Only MySQL / MariaDB SQL dialect is produced (but can be extended to other dialects easily when you stick to the API).
-* GROUP BY clauses are not implemented yet
-* Multiple projections are not yet supported (such as `SELECT MAX(name), MIN(name) FROM #__users`) - will be extended.
 * A few of the limitations may be ovecome by using the `SqlExpression` and `SqlProjection` classes:
 
 ```
@@ -603,7 +649,7 @@ However, some limitations exist:
 $myExpr = Restrictions::sql('my-sql-fragment');
 
 // Use a specific projection not supported
-$myProj = Projections::sql('name, email');
+$myProj = Projections::sql('RANDOM()');
 ```
   
 But feel free to raise an issue (see below) when you need some extension that is not yet supported.

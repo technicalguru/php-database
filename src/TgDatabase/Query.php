@@ -10,20 +10,67 @@ namespace TgDatabase;
 interface Query {
 
 	/**
+	  * Resets the result class.
+	  * Useful when using #setColumns() as this method erases the result class.
+	  * @return Query - this query for method chaining.
+	  */
+	public function setResultClass(string $name);
+
+	/**
 	  * Add a restriction to constrain the results to be retrieved.
 	  * @return Query - this query for method chaining.
 	  */
 	public function add(Criterion ...$criterion);
 
 	/**
+	  * Add a restriction to constrain the results to be retrieved.
+	  * @return Query - this query for method chaining.
+	  */
+	public function where(Criterion ...$criterion);
+
+	/**
 	  * Add an ordering to the result set.
+	  * @return Query - this query for method chaining.
 	  */
 	public function addOrder(Order ...$order);
 
 	/**
-	  * Set a projection for the query.
+	  * Add an ordering to the result set.
+	  * @return Query - this query for method chaining.
 	  */
-	public function setProjection(Projection $projection);
+	public function orderBy(Order ...$order);
+
+	/**
+	  * Add select columns for the query.
+	  * @return Query - this query for method chaining.
+	  */
+	public function select(Expression ...$expressions);
+
+	/**
+	  * Set select columns for the query.
+	  * Attention! This class removes any result class name from the query. Use #setResultClass() after calling.
+	  * @return Query - this query for method chaining.
+	  */
+	public function setSelect(Expression ...$expressions);
+
+	/**
+	  * Add projections for the query.
+	  * @return Query - this query for method chaining.
+	  * @deprecated Use #setColumns()
+	  */
+	public function setProjection(Expression ...$expressions);
+
+	/**
+	  * Add group by column
+	  * @return Query - this query for method chaining.
+	  */
+	public function groupBy(Expression ...$expressions);
+
+	/**
+	  * Add a restriction to constrain the group by result.
+	  * @return Query - this query for method chaining.
+	  */
+	public function having(Criterion ...$criterions);
 
 	/**
 	  * Set the index of the first result to be retrieved.
@@ -34,13 +81,14 @@ interface Query {
 	/**
 	  * Set a limit upon the number of rows to be retrieved. 
 	  * @return Query - this query for method chaining.
+	  * @return Query - this query for method chaining.
 	  */
 	public function setMaxResults(int $maxResults);
 
 	/**
 	  * Create a new join query.
 	  */
-	public function createJoinedQuery($tableName, $alias, $joinCriterion);
+	public function createJoin($tableName, $alias, $joinCriterion);
 
 	/**
 	  * Create a new join query.
@@ -50,11 +98,13 @@ interface Query {
 
 	/**
 	  * Add a new join query.
+	  * @return Query - this query for method chaining.
 	  */
-	public function addJoinedQuery(Query $query, $joinCriterion);
+	public function join(Query $query, $joinCriterion);
 
 	/**
 	  * Add a new join query.
+	  * @return Query - this query for method chaining.
 	  * @deprecated Use #addJoinedQuery instead
 	  */
 	public function addCriteria(Query $query, $joinCriterion);

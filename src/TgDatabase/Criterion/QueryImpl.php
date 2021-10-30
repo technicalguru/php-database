@@ -6,6 +6,7 @@ use TgDatabase\Query;
 use TgDatabase\Criterion;
 use TgDatabase\Order;
 use TgDatabase\Projection;
+use TgDatabase\Expression;
 use TgDatabase\Projections;
 
 
@@ -16,8 +17,10 @@ class QueryImpl implements Query {
 		$this->tableName       = $tableName;
 		$this->resultClassName = $resultClassName;
 		$this->alias           = $alias;
-		$this->projection      = NULL;
+		$this->columns         = array();
 		$this->subqueries      = array();
+		$this->groupBy         = array();
+		$this->having          = array();
 		$this->criterions      = array();
 		$this->orders          = array();
 		$this->firstResult     = -1;
@@ -29,8 +32,10 @@ class QueryImpl implements Query {
 	 */
 	public function clone() {
 		$rc = new QueryImpl($this->database, $this->tableName, $this->resultClassName, $this->alias);
-		$rc->projection      = $this->projection;
+		$rc->columns         = $this->columns;
 		$rc->subqueries      = $this->subqueries;
+		$rc->groupBy         = $this->groupBy;
+		$rc->having          = $this->having;
 		$rc->criterions      = $this->criterions;
 		$rc->orders          = $this->orders;
 		$rc->firstResult     = -1;
@@ -39,11 +44,36 @@ class QueryImpl implements Query {
 	}
 
 	/**
+	  * Resets the result class.
+	  * Useful when using #setColumns() as this method erases the result class.
+	  */
+	public function setResultClass(?string $name) {
+		$this->resultClassName = $name;
+		return $this;
+	}
+
+	/**
+	  * Add a restriction to constrain the results to be retrieved.
+	  * @return Query - this query for method chaining.
+	  */
+	public function where(Criterion ...$criterions) {
+		foreach ($criterions AS $criterion) $this->criterions[] = $criterion;
+		return $this;
+	}
+
+	/**
 	  * Add a restriction to constrain the results to be retrieved.
 	  * @return Query - this query for method chaining.
 	  */
 	public function add(Criterion ...$criterions) {
-		foreach ($criterions AS $criterion) $this->criterions[] = $criterion;
+		return call_user_func_array(array($this, 'where'), $criterions);
+	}
+
+	/**
+	  * Add an ordering to the result set.
+	  */
+	public function orderBy(Order ...$orders) {
+		foreach ($orders AS $order) $this->orders[] = $order;
 		return $this;
 	}
 
@@ -51,16 +81,53 @@ class QueryImpl implements Query {
 	  * Add an ordering to the result set.
 	  */
 	public function addOrder(Order ...$orders) {
-		foreach ($orders AS $order) $this->orders[] = $order;
+		return call_user_func_array(array($this, 'orderBy'), $orders);
+	}
+
+	/**
+	  * Set projection for the query.
+	  * Attention! This class removes any result class name from the query. Use #setResultClass() after calling.
+	  * @deprecated Use #setColumns() instead
+	  */
+	public function setProjection(Expression ...$expressions) {
+		return call_user_func_array(array($this, 'setSelect'), $expressions);
+	}
+
+	/**
+	  * Set select columns for the query.
+	  * Attention! This class removes any result class name from the query. Use #setResultClass() after calling.
+	  */
+	public function setSelect(Expression ...$expressions) {
+		$this->columns = array();
+		return call_user_func_array(array($this, 'select'), $expressions);
+	}
+
+	/**
+	  * Add select columns for the query.
+	  */
+	public function select(Expression ...$expressions) {
+		foreach ($expressions AS $c) {
+			if ($c != NULL) $this->columns[] = $c;
+		}
 		return $this;
 	}
 
 	/**
-	  * Add a projection to the query.
+	  * Add group by columns for the query.
 	  */
-	public function setProjection(Projection $projection) {
-		$this->projection      = $projection;
-		$this->resultClassName = NULL;
+	public function groupBy(Expression ...$expressions) {
+		foreach ($expressions AS $c) {
+			if ($c != NULL) $this->groupBy[] = $c;
+		}
+		return $this;
+	}
+
+	/**
+	  * Add a restriction to constrain the group by result.
+	  * @return Query - this query for method chaining.
+	  */
+	public function having(Criterion ...$criterions) {
+		foreach ($criterions AS $criterion) $this->having[] = $criterion;
 		return $this;
 	}
 
@@ -92,9 +159,9 @@ class QueryImpl implements Query {
 	/**
 	  * Create a new join query.
 	  */
-	public function createJoinedQuery($tableName, $alias, $joinCriterion) {
+	public function createJoin($tableName, $alias, $joinCriterion) {
 		$rc = new QueryImpl($this->database, $tableName, NULL, $alias);
-		$this->addCriteria($rc, $joinCriterion);
+		$this->join($rc, $joinCriterion);
 		return $rc;
 	}
 
@@ -103,13 +170,13 @@ class QueryImpl implements Query {
 	  * @deprecated
 	  */
 	public function createCriteria($tableName, $alias, $joinCriterion) {
-		return $this->createJoinedQuery($tableName, $alias, $joinCriterion);
+		return $this->createJoin($tableName, $alias, $joinCriterion);
 	}
 
 	/**
 	  * Add a new join query.
 	  */
-	public function addJoinedQuery(Query $query, $joinCriterion) {
+	public function join(Query $query, $joinCriterion) {
 		$this->subqueries[] = array($query, $joinCriterion);
 		return $this;
 	}
@@ -119,7 +186,7 @@ class QueryImpl implements Query {
 	  * @deprecated
 	  */
 	public function addCriteria(Query $query, $joinCriterion) {
-		return $this->addJoinedQuery($query, $joinCriterion);
+		return $this->join($query, $joinCriterion);
 	}
 
 	/**
@@ -138,7 +205,7 @@ class QueryImpl implements Query {
 	 * Count the results.
 	 */
 	public function count($throwException = FALSE) {
-		$query  = $this->clone()->setProjection(Projections::alias(Projections::rowCount(), 'cnt'));
+		$query  = $this->clone()->select(Projections::alias(Projections::rowCount(), 'cnt'))->setResultClass(NULL);
 		$record = $query->first();
 		if ($query->hasError()) {
 			if ($throwException) {
@@ -186,7 +253,7 @@ class QueryImpl implements Query {
 	}
 
 	public function getSelectSql() {
-		// SELECT projections
+		// SELECT columns
 		$rc = 'SELECT '.$this->getSelectClause();
 
 		// FROM table
@@ -198,16 +265,22 @@ class QueryImpl implements Query {
 		    $rc .= ' '.trim($join);
 		}
 		
-		// GROUP BY projection not implemented yet
-		$group = $this->getGroupByClause();
-		if ($group != NULL) {
-		    $rc .= ' '.$group;
-		}
-		
 		// WHERE clauses
 		$where = $this->getWhereClause();
 		if ($where != NULL) {
 			$rc .= ' WHERE '.$where;
+		}
+		
+		// GROUP BY
+		$group = $this->getGroupByClause();
+		if ($group != NULL) {
+		    $rc .= ' GROUP BY '.$group;
+
+			// HAVING
+			$having = $this->getHavingClause();
+			if ($having != NULL) {
+				$rc .= ' HAVING '.$having;
+			}
 		}
 		
 		// ORDER BY clauses
@@ -269,8 +342,12 @@ class QueryImpl implements Query {
 
 	public function getSelectClause() {
 		$rc = '';
-		if ($this->projection != NULL) {
-			$rc .= $this->projection->toSqlString($this, $this);
+		if (($this->columns != NULL) && (count($this->columns) > 0)) {
+			$sql = array();
+			foreach ($this->columns AS $p) {
+				$sql[] = $p->toSqlString($this, $this);
+			}
+			$rc .= implode(', ', $sql);
 		} else if ($this->alias != NULL) {
 			$rc .= $this->quoteName($this->alias).'.*';
 		} else {
@@ -297,7 +374,27 @@ class QueryImpl implements Query {
 	}
 
 	public function getGroupByClause() {
-		return NULL;
+		$rc = NULL;
+		if (($this->groupBy != NULL) && (count($this->groupBy) > 0)) {
+			$sql = array();
+			foreach ($this->groupBy AS $p) {
+				$sql[] = $p->toSqlString($this, $this);
+			}
+			$rc = implode(', ', $sql);
+		}
+		return $rc;
+	}
+
+	public function getHavingClause() {
+		$rc = NULL;
+		if (count($this->having) > 0) {
+			foreach ($this->having AS $criterion) {
+				if ($rc != NULL) $rc .= ' AND ';
+				else $rc = '';
+				$rc .= '('.$criterion->toSqlString($this, $this).')';
+			}
+		}
+		return $rc;
 	}
 
 	public function getWhereClause() {

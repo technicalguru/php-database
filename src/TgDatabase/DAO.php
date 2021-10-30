@@ -105,12 +105,12 @@ class DAO {
 		// Add restrictions
 		$restrictions = Restrictions::toRestrictions($restrictions);
 		if (Restrictions::$hasDeprecatedUse) $this->warnDeprecation();
-		if ($restrictions != NULL) $query->add($restrictions);
+		if ($restrictions != NULL) $query->where($restrictions);
 
 		// Add orders
 		if (!is_array($order)) $order = array($order);
 		foreach ($order AS $o) {
-			$query->addOrder(Order::toOrder($o));
+			$query->orderBy(Order::toOrder($o));
 			if (Order::$hasDeprecatedUse) $this->warnDeprecation();
 		}
 
