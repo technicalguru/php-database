@@ -1,5 +1,5 @@
 # php-database
-A PHP library for accessing databases easily. The library provide a MySQL/MariaDB flavoured database object
+A PHP library for accessing databases easily. This library provides a MySQL/MariaDB flavoured database object
 that abstracts many daily task in SQL writing, such as quoting, escaping, building SQL statements, WHERE
 clauses, error handling and so on.
 
@@ -67,7 +67,7 @@ $arr = $db->queryList('SELECT * FROM #__devtest');
 $obj = $db->querySingle('SELECT * FROM #__devtest WHERE uid='.$uid);
 ```
 
-The interface usually delivers `stdClass` objects by default. However, you can name
+The interface delivers `stdClass` objects by default. However, you can name
 your own data class so the data will be populated in such a class:
 
 ```
@@ -147,7 +147,7 @@ $dao = \TgDatabase\DAO($db, '#__users');
 The default constructor as above makes assumptions about your table:
 
 1. It always returns `stdClass` objects.
-1. It assumes that your table has an `int auto-increment` primary key that is names `uid`.
+1. It assumes that your table has an `int auto-increment` primary key that is named `uid`.
 
 However, you can tell `DAO` your specifics:
 
@@ -159,7 +159,8 @@ $dao = \TgDatabase\DAO($db, '#__users', 'MyNamespace\\User`);
 $dao = \TgDatabase\DAO($db, '#__users', 'MyNamespace\\User`, 'id');
 ```
 
-`DAO` can actually handle non-numeric primary keys. The usage is not recommended though.
+`DAO` can actually handle non-numeric primary keys. The usage is not recommended though as you need
+to create the primary keys yourself.
 
 ## Finding objects
 
@@ -191,12 +192,12 @@ $newUser->group    = 'webusers';
 $newUser->active   = 1;
 $newId = $dao->create($newUser);
 
-// Updating an existing user
+// Update an existing user
 $user = $dao->get($newId);
 $user->name = 'Jane Doe';
 $dao->save($user);
 
-// Deleting a user
+// Delete a user
 $dao->delete($user);
 // or
 $dao->delete($user->uid);
@@ -276,7 +277,7 @@ class Users extends DAO {
     }
     
     public function findByDepartment($department, $order = NULL) {
-        return $this->find(array('department' => $email), $order);
+        return $this->find(array('department' => $department), $order);
     }
 }   
 ```
@@ -286,7 +287,7 @@ the new Query API. Please read the [Query API](#query-api) chapter.
 
 ## Using Data Objects with DAOs
 
-As above mentioned, you can use your own data classes. There are actually no
+As mentioned above, you can use your own data classes. There are actually no
 restrictions other than the class needs a no-argument constructor. The main
 advantage is that this class can have additional methods that have some
 logic. You can even define additional attributes that will not be saved in
@@ -332,7 +333,7 @@ $products = $model->get('products')->find();
 Of course, a better idea is to encapsulate this in your own `DataModel` subclass:
 
 ```
-class MyDataModel extends \TGDatabase\DataModel {
+class MyDataModel extends \TgDatabase\DataModel {
 
     public function __construct($database) {
         parent::__construct($database);
@@ -630,14 +631,14 @@ $count  = $dao->count(Restrictions::eq('name', 'John Doe'));
 ```
 
 ## Advantages and Limitations
-The Query API will further ease searching objects in a database and return model classes, using more
-complex expressions and restrictions. You will be able to dynamically apply restrictions depending on
-the requirements of your front-end users and your application. And you won't need the DAO once you 
+The Query API further eases searching objects in a database and return model classes, using more
+complex expressions and restrictions. You are able to dynamically apply restrictions depending on
+the requirements of your front-end users and your application. And you don't need the DAO once you 
 created the `Query` object. It is self-contained.
 
 However, some limitations exist:
 
-* Query API supports basic use cases so far (searching objects with basic restrictions).
+* Query API supports basic use cases so far (searching objects with basic restrictions, updates, deleting).
 * Only MySQL / MariaDB SQL dialect is produced (but can be extended to other dialects easily when you stick to the API).
 * A few of the limitations may be ovecome by using the `SqlExpression` and `SqlProjection` classes:
 
@@ -646,7 +647,7 @@ However, some limitations exist:
 $myExpr = Restrictions::sql('my-sql-fragment');
 
 // Use a specific projection not supported
-$myProj = Projections::sql('name, email');
+$myProj = Projections::sql('RANDOM()');
 ```
   
 But feel free to raise an issue (see below) when you need some extension that is not yet supported.
