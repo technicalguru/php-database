@@ -47,7 +47,7 @@ class QueryImpl implements Query {
 	  * Resets the result class.
 	  * Useful when using #setColumns() as this method erases the result class.
 	  */
-	public function setResultClass(string $name) {
+	public function setResultClass(?string $name) {
 		$this->resultClassName = $name;
 		return $this;
 	}
@@ -56,8 +56,24 @@ class QueryImpl implements Query {
 	  * Add a restriction to constrain the results to be retrieved.
 	  * @return Query - this query for method chaining.
 	  */
-	public function add(Criterion ...$criterions) {
+	public function where(Criterion ...$criterions) {
 		foreach ($criterions AS $criterion) $this->criterions[] = $criterion;
+		return $this;
+	}
+
+	/**
+	  * Add a restriction to constrain the results to be retrieved.
+	  * @return Query - this query for method chaining.
+	  */
+	public function add(Criterion ...$criterions) {
+		return call_user_func_array(array($this, 'where'), $criterions);
+	}
+
+	/**
+	  * Add an ordering to the result set.
+	  */
+	public function orderBy(Order ...$orders) {
+		foreach ($orders AS $order) $this->orders[] = $order;
 		return $this;
 	}
 
@@ -65,8 +81,7 @@ class QueryImpl implements Query {
 	  * Add an ordering to the result set.
 	  */
 	public function addOrder(Order ...$orders) {
-		foreach ($orders AS $order) $this->orders[] = $order;
-		return $this;
+		return call_user_func_array(array($this, 'orderBy'), $orders);
 	}
 
 	/**
@@ -75,22 +90,22 @@ class QueryImpl implements Query {
 	  * @deprecated Use #setColumns() instead
 	  */
 	public function setProjection(Expression ...$expressions) {
-		return call_user_func_array(array($this, 'setColumns'), $expressions);
+		return call_user_func_array(array($this, 'setSelect'), $expressions);
 	}
 
 	/**
 	  * Set select columns for the query.
 	  * Attention! This class removes any result class name from the query. Use #setResultClass() after calling.
 	  */
-	public function setColumns(Expression ...$expressions) {
+	public function setSelect(Expression ...$expressions) {
 		$this->columns = array();
-		return call_user_func_array(array($this, 'addColumns'), $expressions);
+		return call_user_func_array(array($this, 'select'), $expressions);
 	}
 
 	/**
 	  * Add select columns for the query.
 	  */
-	public function addColumns(Expression ...$expressions) {
+	public function select(Expression ...$expressions) {
 		foreach ($expressions AS $c) {
 			if ($c != NULL) $this->columns[] = $c;
 		}
@@ -144,9 +159,9 @@ class QueryImpl implements Query {
 	/**
 	  * Create a new join query.
 	  */
-	public function createJoinedQuery($tableName, $alias, $joinCriterion) {
+	public function createJoin($tableName, $alias, $joinCriterion) {
 		$rc = new QueryImpl($this->database, $tableName, NULL, $alias);
-		$this->addCriteria($rc, $joinCriterion);
+		$this->join($rc, $joinCriterion);
 		return $rc;
 	}
 
@@ -155,13 +170,13 @@ class QueryImpl implements Query {
 	  * @deprecated
 	  */
 	public function createCriteria($tableName, $alias, $joinCriterion) {
-		return $this->createJoinedQuery($tableName, $alias, $joinCriterion);
+		return $this->createJoin($tableName, $alias, $joinCriterion);
 	}
 
 	/**
 	  * Add a new join query.
 	  */
-	public function addJoinedQuery(Query $query, $joinCriterion) {
+	public function join(Query $query, $joinCriterion) {
 		$this->subqueries[] = array($query, $joinCriterion);
 		return $this;
 	}
@@ -171,7 +186,7 @@ class QueryImpl implements Query {
 	  * @deprecated
 	  */
 	public function addCriteria(Query $query, $joinCriterion) {
-		return $this->addJoinedQuery($query, $joinCriterion);
+		return $this->join($query, $joinCriterion);
 	}
 
 	/**
@@ -190,7 +205,7 @@ class QueryImpl implements Query {
 	 * Count the results.
 	 */
 	public function count($throwException = FALSE) {
-		$query  = $this->clone()->setProjection(Projections::alias(Projections::rowCount(), 'cnt'));
+		$query  = $this->clone()->setProjection(Projections::alias(Projections::rowCount(), 'cnt'))->setResultClass(NULL);
 		$record = $query->first();
 		if ($query->hasError()) {
 			if ($throwException) {
@@ -250,6 +265,12 @@ class QueryImpl implements Query {
 		    $rc .= ' '.trim($join);
 		}
 		
+		// WHERE clauses
+		$where = $this->getWhereClause();
+		if ($where != NULL) {
+			$rc .= ' WHERE '.$where;
+		}
+		
 		// GROUP BY
 		$group = $this->getGroupByClause();
 		if ($group != NULL) {
@@ -260,12 +281,6 @@ class QueryImpl implements Query {
 			if ($having != NULL) {
 				$rc .= ' HAVING '.$having;
 			}
-		}
-		
-		// WHERE clauses
-		$where = $this->getWhereClause();
-		if ($where != NULL) {
-			$rc .= ' WHERE '.$where;
 		}
 		
 		// ORDER BY clauses

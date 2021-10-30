@@ -23,23 +23,35 @@ interface Query {
 	public function add(Criterion ...$criterion);
 
 	/**
+	  * Add a restriction to constrain the results to be retrieved.
+	  * @return Query - this query for method chaining.
+	  */
+	public function where(Criterion ...$criterion);
+
+	/**
 	  * Add an ordering to the result set.
 	  * @return Query - this query for method chaining.
 	  */
 	public function addOrder(Order ...$order);
 
 	/**
+	  * Add an ordering to the result set.
+	  * @return Query - this query for method chaining.
+	  */
+	public function orderBy(Order ...$order);
+
+	/**
 	  * Add select columns for the query.
 	  * @return Query - this query for method chaining.
 	  */
-	public function addColumns(Expression ...$expressions);
+	public function select(Expression ...$expressions);
 
 	/**
 	  * Set select columns for the query.
 	  * Attention! This class removes any result class name from the query. Use #setResultClass() after calling.
 	  * @return Query - this query for method chaining.
 	  */
-	public function setColumns(Expression ...$expressions);
+	public function setSelect(Expression ...$expressions);
 
 	/**
 	  * Add projections for the query.
@@ -76,7 +88,7 @@ interface Query {
 	/**
 	  * Create a new join query.
 	  */
-	public function createJoinedQuery($tableName, $alias, $joinCriterion);
+	public function createJoin($tableName, $alias, $joinCriterion);
 
 	/**
 	  * Create a new join query.
@@ -88,7 +100,7 @@ interface Query {
 	  * Add a new join query.
 	  * @return Query - this query for method chaining.
 	  */
-	public function addJoinedQuery(Query $query, $joinCriterion);
+	public function join(Query $query, $joinCriterion);
 
 	/**
 	  * Add a new join query.

@@ -21,8 +21,8 @@ final class QueryImplTest extends TestCase {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {
             $query = new QueryImpl($database, 'dual');
-            $query->add(Restrictions::eq('aName', 'aValue'));
-            $query->addOrder(Order::asc('anotherName'));
+            $query->where(Restrictions::eq('aName', 'aValue'));
+            $query->orderBy(Order::asc('anotherName'));
             $this->assertEquals('SELECT * FROM `dual` WHERE (`aName` = \'aValue\') ORDER BY `anotherName`', $query->getSelectSql());
         }
     }
@@ -41,7 +41,7 @@ final class QueryImplTest extends TestCase {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {
             $query = new QueryImpl($database, 'dual');
-            $query->setProjection(Projections::rowCount('cnt'));
+            $query->select(Projections::rowCount('cnt'));
             $this->assertEquals('SELECT COUNT(*) AS `cnt` FROM `dual`', $query->getSelectSql());
         }
     }
@@ -50,7 +50,7 @@ final class QueryImplTest extends TestCase {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {
             $query = new QueryImpl($database, 'dual');
-            $query->setColumns(Projections::property('column1'), Projections::property('column2'));
+            $query->select(Projections::property('column1'), Projections::property('column2'));
             $this->assertEquals('SELECT `column1`, `column2` FROM `dual`', $query->getSelectSql());
         }
     }
@@ -59,7 +59,7 @@ final class QueryImplTest extends TestCase {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {
             $query = new QueryImpl($database, 'dual');
-            $query->setColumns(Projections::properties('column1', 'column2'));
+            $query->select(Projections::properties('column1', 'column2'));
             $this->assertEquals('SELECT `column1`, `column2` FROM `dual`', $query->getSelectSql());
         }
     }
@@ -68,7 +68,7 @@ final class QueryImplTest extends TestCase {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {
             $query = new QueryImpl($database, 'dual');
-            $query->addColumns(Projections::property('column1'))->addColumns(Projections::property('column2'));
+            $query->select(Projections::property('column1'))->select(Projections::property('column2'));
             $this->assertEquals('SELECT `column1`, `column2` FROM `dual`', $query->getSelectSql());
         }
     }
@@ -77,7 +77,7 @@ final class QueryImplTest extends TestCase {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {
             $query = new QueryImpl($database, 'dual', NULL, 'a');
-            $query->createJoinedQuery('otherTable', 'b', Restrictions::eqProperty(array('a', 'details'), array('b', 'uid')));
+            $query->createJoin('otherTable', 'b', Restrictions::eqProperty(array('a', 'details'), array('b', 'uid')));
             $this->assertEquals('SELECT `a`.* FROM `dual` AS `a` INNER JOIN `otherTable` AS `b` ON `a`.`details` = `b`.`uid`', $query->getSelectSql());
         }
     }
@@ -151,7 +151,7 @@ final class QueryImplTest extends TestCase {
         $database = TestHelper::getDatabase();
         if ($database != NULL) {
             $query = new QueryImpl($database, 'dual');
-            $query->add(Restrictions::eq('attr3', 'value3'));
+            $query->where(Restrictions::eq('attr3', 'value3'));
             $this->assertEquals("DELETE FROM `dual` WHERE (`attr3` = 'value3')", $query->getDeleteSql());
         }
     }
@@ -161,10 +161,10 @@ final class QueryImplTest extends TestCase {
         if ($database != NULL) {
             $query = new QueryImpl($database, 'dual');
             $query
-				->addColumns(Projections::property('attr1'), Projections::rowCount('cnt'))
-				->add(Restrictions::eq('attr3', 'value3'))
+				->select(Projections::property('attr1'), Projections::rowCount('cnt'))
+				->where(Restrictions::eq('attr3', 'value3'))
 				->groupBy(Projections::property('attr1'));
-            $this->assertEquals("SELECT `attr1`, COUNT(*) AS `cnt` FROM `dual` GROUP BY `attr1` WHERE (`attr3` = 'value3')", $query->getSelectSql());
+            $this->assertEquals("SELECT `attr1`, COUNT(*) AS `cnt` FROM `dual` WHERE (`attr3` = 'value3') GROUP BY `attr1`", $query->getSelectSql());
         }
     }
 
@@ -173,11 +173,11 @@ final class QueryImplTest extends TestCase {
         if ($database != NULL) {
             $query = new QueryImpl($database, 'dual');
             $query
-				->addColumns(Projections::property('attr1'), Projections::rowCount('cnt'))
-				->add(Restrictions::eq('attr3', 'value3'))
+				->select(Projections::property('attr1'), Projections::rowCount('cnt'))
+				->where(Restrictions::eq('attr3', 'value3'))
 				->groupBy(Projections::property('attr1'))
 				->having(Restrictions::eq('attr1', 'value1'));
-            $this->assertEquals("SELECT `attr1`, COUNT(*) AS `cnt` FROM `dual` GROUP BY `attr1` HAVING (`attr1` = 'value1') WHERE (`attr3` = 'value3')", $query->getSelectSql());
+            $this->assertEquals("SELECT `attr1`, COUNT(*) AS `cnt` FROM `dual` WHERE (`attr3` = 'value3') GROUP BY `attr1` HAVING (`attr1` = 'value1')", $query->getSelectSql());
         }
     }
 
