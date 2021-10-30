@@ -607,8 +607,8 @@ The Query API allows to define grouping result sets and restricting the returned
 // List the number of books that authors published whose names begin with 'John'
 $bookQuery
 	->setColumns(Projections::property('author'), Projections::rowCount('cnt'))
-	->addGroupBy(Projections::property('author'))
-	->addHaving(Restrictions::like('author', 'John%'))
+	->groupBy(Projections::property('author'))
+	->having(Restrictions::like('author', 'John%'))
 	->list();
 ```
 

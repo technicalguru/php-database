@@ -100,7 +100,7 @@ class QueryImpl implements Query {
 	/**
 	  * Add group by columns for the query.
 	  */
-	public function addGroupBy(Expression ...$expressions) {
+	public function groupBy(Expression ...$expressions) {
 		foreach ($expressions AS $c) {
 			if ($c != NULL) $this->groupBy[] = $c;
 		}
@@ -111,7 +111,7 @@ class QueryImpl implements Query {
 	  * Add a restriction to constrain the group by result.
 	  * @return Query - this query for method chaining.
 	  */
-	public function addHaving(Criterion ...$criterions) {
+	public function having(Criterion ...$criterions) {
 		foreach ($criterions AS $criterion) $this->having[] = $criterion;
 		return $this;
 	}

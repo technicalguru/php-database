@@ -52,13 +52,13 @@ interface Query {
 	  * Add group by column
 	  * @return Query - this query for method chaining.
 	  */
-	public function addGroupBy(Expression ...$expressions);
+	public function groupBy(Expression ...$expressions);
 
 	/**
 	  * Add a restriction to constrain the group by result.
 	  * @return Query - this query for method chaining.
 	  */
-	public function addHaving(Criterion ...$criterions);
+	public function having(Criterion ...$criterions);
 
 	/**
 	  * Set the index of the first result to be retrieved.
