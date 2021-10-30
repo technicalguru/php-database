@@ -519,7 +519,7 @@ $query1->select(Projections::properties('myColumn', 'anotherColumn'));
 ```
 
 **Attention:** A call to `setSelect()` or `setProjection()` (deprecated alternative) will NOT remove
-the result class definition in the query object as done before. This will breaks compatibility with previous versions.
+the result class definition in the query object as done before. This breaks compatibility with previous versions.
 So you need to call `setResultClass(NULL)` to have `stdClass` returned.
 
 ## Getting the result
@@ -547,11 +547,11 @@ Basic projections - the aggregation of columns of different rows - are available
 
 ```
 $proj = Projections::rowCount();
-$query->setlect($proj);
+$query->select($proj);
 ```
 
 You will find projections for: count, distinct, sum, avg, min, max. Please notice that
-the returned model class is not reset. You need to call `setResultClass(NULL) to have 
+the returned model class is not reset. You need to call `setResultClass(NULL)` to have 
 `stdClass` returned when using projections.
 
 ## Subqueries and JOINs
