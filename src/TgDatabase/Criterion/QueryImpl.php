@@ -205,7 +205,7 @@ class QueryImpl implements Query {
 	 * Count the results.
 	 */
 	public function count($throwException = FALSE) {
-		$query  = $this->clone()->setProjection(Projections::alias(Projections::rowCount(), 'cnt'))->setResultClass(NULL);
+		$query  = $this->clone()->select(Projections::alias(Projections::rowCount(), 'cnt'))->setResultClass(NULL);
 		$record = $query->first();
 		if ($query->hasError()) {
 			if ($throwException) {

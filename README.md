@@ -440,7 +440,7 @@ class `Restrictions` is there to create them:
 ```
 $expr1 = Restrictions::eq('name', 'myUsername');
 $expr2 = Restrictions::isNotNull('email');
-$query->add($expr1, $expr);
+$query->where($expr1, $expr);
 ```
 
 The most common restrictions are provided: eq, ne, lt, gt, ge, le, like, isNull, isNotNull, between. You can also
@@ -484,8 +484,8 @@ $order2 = \TgDatabase\Order::desc(array('b', 'columnFromJoinedTable'));
 Finally add these objects to your query:
 
 ```
-$query->addOrder($order1, $order2);
-$query->addOrder($order3);
+$query->orderBy($order1, $order2);
+$query->orderBy($order3);
 ```
 
 ## Modifying the column list: columns and projections
@@ -494,33 +494,33 @@ the column list:
 
 ```
 // Select myColumn only
-$query->addColumn(Projections::property('myColumn'));
+$query->select(Projections::property('myColumn'));
 
 // Add another column
-$query->addColumn(Projections::property('anotherColumn'));
+$query->select(Projections::property('anotherColumn'));
 ```
 
-Please notice that the first call to `addColumn` will remove the `*` retrieval
+Please notice that the first call to `select` will remove the `*` retrieval
 on the query. Any subsequent call will enhance the list. The same result can be
 achieved with:
 
 ```
-$query->setColumns(Projections::property('myColumn'), Projections::property('anotherColumn'));
+$query->setSelect(Projections::property('myColumn'), Projections::property('anotherColumn'));
 ```
 
 And there are some shortcuts:
 
 ```
 // Variant 1: flexible argument list
-$query1->addColumn(Projections::property('myColumn'), Projections::property('anotherColumn'));
+$query1->select(Projections::property('myColumn'), Projections::property('anotherColumn'));
 
 // Variant 2: use #properties() method in Projections
-$query1->addColumn(Projections::properties('myColumn', 'anotherColumn'));
+$query1->select(Projections::properties('myColumn', 'anotherColumn'));
 ```
 
-**Attention:** A call to `setColumns()` or `setProjection()` (deprecated alternative) will always remove
-the result class definition in the query object. This will ensure compatibility with previous versions.
-So you would need to call `setResultClass()` in case you want the query to return other classes than `stdClass`.
+**Attention:** A call to `setSelect()` or `setProjection()` (deprecated alternative) will NOT remove
+the result class definition in the query object as done before. This will breaks compatibility with previous versions.
+So you need to call `setResultClass(NULL)` to have `stdClass` returned.
 
 ## Getting the result
 That's the most easiest part:
@@ -547,11 +547,12 @@ Basic projections - the aggregation of columns of different rows - are available
 
 ```
 $proj = Projections::rowCount();
-$query->setProjection($proj);
+$query->setlect($proj);
 ```
 
 You will find projections for: count, distinct, sum, avg, min, max. Please notice that
-the returned model class is always the `stdClass` when using projections.
+the returned model class is not reset. You need to call `setResultClass(NULL) to have 
+`stdClass` returned when using projections.
 
 ## Subqueries and JOINs
 This is most likely the biggest advance in using the Query API. The traditional API methods
@@ -570,21 +571,21 @@ to join them properly:
 ```
 $authors     = $authorDAO->createQuery('b');
 $restriction = Restrictions::eq(array('a','author'), array('b','uid'));
-$query->addJoinedQuery($authors, $restriction);
+$query->join($authors, $restriction);
 ```
 
 And finally we apply the search condition for the author:
 
 ```
-$authors->add(Restrictions::like('name', 'A%'));
+$authors->where(Restrictions::like('name', 'A%'));
 ```
 
 Another way of adding subqueries is directly via the main `Query` object:
 
 ```
 $authors = $booksDAO->createQuery('a');
-$authors->createJoinedQuery('#__authors', 'b', Restrictions::eq(array('a','author'), array('b','uid')));
-$authors->add(Restrictions::like('name', 'A%'));
+$authors->createJoin('#__authors', 'b', Restrictions::eq(array('a','author'), array('b','uid')));
+$authors->where(Restrictions::like('name', 'A%'));
 ```
 
 ## Updating and deleting multiple objects
@@ -594,11 +595,11 @@ The `Query` object can also update and delete objects:
 // Update
 $restrictions = Restrictions::eq('name', 'John Doe');
 $updates      = array('comment' => 'This is an unknown author');
-$dao->createQuery()->add($restrictions)->update($updates);
+$dao->createQuery()->where($restrictions)->update($updates);
 
 // Delete
 $restrictions = Restrictions::eq('name', 'Jane Doe');
-$dao->createQuery()->add($restrictions)->delete();
+$dao->createQuery()->where($restrictions)->delete();
 ```
 
 ## GROUP BY and HAVING clauses
@@ -607,9 +608,10 @@ The Query API allows to define grouping result sets and restricting the returned
 ```
 // List the number of books that authors published whose names begin with 'John'
 $bookQuery
-	->setColumns(Projections::property('author'), Projections::rowCount('cnt'))
+	->select(Projections::property('author'), Projections::rowCount('cnt'))
 	->groupBy(Projections::property('author'))
 	->having(Restrictions::like('author', 'John%'))
+	->setResultClass(NULL)
 	->list();
 ```
 
