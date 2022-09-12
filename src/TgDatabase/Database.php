@@ -73,6 +73,7 @@ class Database {
 	 * @return string the escaped string
 	 */
 	public function escape($s) {
+		if ($s == NULL) return NULL;
 		return $this->con->real_escape_string($s);
 	}
 
