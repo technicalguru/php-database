@@ -58,7 +58,7 @@ class DataModel {
 		if (!isset($this->models[$name]) && ($this->daoFactory != NULL)) {
 			$this->register($name, $this->daoFactory->createDao($name));
 		} 
-        return $this->models[$name];
+        return isset($this->models[$name]) ? $this->models[$name] : NULL;
     }
 
     /**
