@@ -20,8 +20,8 @@ This project is licensed under [GNU LGPL 3.0](LICENSE.md).
 
 ## By Composer
 
-```
-composer install technicalguru/database
+```sh
+composer require technicalguru/database
 ```
 
 ## By Package Download
