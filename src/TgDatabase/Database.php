@@ -380,7 +380,9 @@ class Database {
 	 * @return int - next auto increment value as UID.
 	 */	
 	public function getNextUid($tableName) {
-		$sql = 'SELECT `auto_increment` FROM INFORMATION_SCHEMA.TABLES WHERE table_name='.$this->quote($this->replaceTablePrefix($tableName)); 
+		$sql = 'SELECT `auto_increment` FROM INFORMATION_SCHEMA.TABLES '.
+			   'WHERE (table_schema='.$this->quote($this->replaceTablePrefix($this->config['dbname'])).') AND '.
+			   '(table_name='.$this->quote($this->replaceTablePrefix($tableName)).')'; 
 		$record = $this->querySingle($sql);
 		if (is_object($record)) return $record->auto_increment;
 		return 0;
