@@ -7,6 +7,11 @@ use TgDatabase\Criterion;
 
 class SimpleExpression implements Criterion {
 
+	public $propertyName;
+	public $value;
+	public $op;
+	public $ignoreCase;
+
 	public function __construct($propertyName, $value, $op, $ignoreCase = FALSE) {
 		$this->propertyName = $propertyName;
 		$this->value        = $value;

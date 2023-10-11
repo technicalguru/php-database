@@ -12,6 +12,19 @@ use TgDatabase\Projections;
 
 class QueryImpl implements Query {
 
+	public $database;
+	public $tableName;
+	public $resultClassName;
+	public $alias;
+	public $columns;
+	public $subqueries;
+	public $groupBy;
+	public $having;
+	public $criterions;
+	public $orders;
+	public $firstResult;
+	public $maxResults;
+
 	public function __construct($database, $tableName, $resultClassName = NULL, $alias = NULL) {
 		$this->database        = $database;
 		$this->tableName       = $tableName;

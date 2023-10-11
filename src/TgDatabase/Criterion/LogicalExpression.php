@@ -7,6 +7,9 @@ use TgDatabase\Criterion;
 
 class LogicalExpression implements Criterion {
 
+	public $op;
+	public $criterions;
+
 	public function __construct($op, ...$criterions) {
 		$this->op         = $op;
 		if ((count($criterions) == 1) and is_array($criterions[0])) {
