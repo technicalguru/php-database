@@ -7,6 +7,11 @@ namespace TgDatabase;
   */
 class Order {
 
+	public $propertyName;
+	public $ascending;
+	public $ignoreCase;
+	public $sql;
+
 	public function __construct($propertyName, $ascending = TRUE, $isSql = FALSE) {
 		$this->propertyName = $propertyName;
 		$this->ascending    = $ascending;
